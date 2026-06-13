@@ -4,7 +4,10 @@ import path from 'path';
 import { randomUUID } from 'crypto';
 
 const PROJECT_ROOT = path.resolve(process.cwd(), '..');
-const VENV_PYTHON  = path.join(PROJECT_ROOT, '.venv', 'Scripts', 'python.exe');
+// On Linux (Render) use system python3; on Windows use the local venv
+const PYTHON_BIN = process.platform === 'win32'
+  ? path.join(PROJECT_ROOT, '.venv', 'Scripts', 'python.exe')
+  : 'python3';
 
 let activeRunId: string | null = null;
 
@@ -32,7 +35,7 @@ export async function POST() {
 
   global.pipelineRun = { runId, stage: '', event: 'started', completed: false };
 
-  const child = spawn(VENV_PYTHON, ['-m', 'pulse.cli', 'run'], {
+  const child = spawn(PYTHON_BIN, ['-m', 'pulse.cli', 'run', '--input', 'data/input/reviews.csv'], {
     cwd: PROJECT_ROOT,
     env: { ...process.env },
   });

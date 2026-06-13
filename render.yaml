@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: wealthsimple-pulse
+    env: node
+    # Render's node image includes Python 3; we install pulse + PyTorch CPU-only here.
+    # NOTE: The embedding step loads BAAI/bge-small-en-v1.5 (~130 MB) and PyTorch at
+    # runtime. Use at least the Standard plan (2 GB RAM) to avoid OOM during pipeline runs.
+    buildCommand: |
+      python3 -m pip install --no-cache-dir torch --extra-index-url https://download.pytorch.org/whl/cpu
+      python3 -m pip install --no-cache-dir -r requirements.txt
+      python3 -m pip install --no-cache-dir -e .
+      cd frontend && npm ci && npm run build
+    startCommand: cd frontend && npm start
+    envVars:
+      - key: GROQ_API_KEY
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: MCP_API_KEY
+        sync: false
+      - key: MCP_SERVER_URL
+        value: https://mcp-server-google-695514226672.europe-west1.run.app
+      - key: NODE_ENV
+        value: production
