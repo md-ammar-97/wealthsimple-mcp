@@ -2,7 +2,6 @@
 Fetch public Wealthsimple Canada app reviews.
 
 Sources:
-  - Apple App Store via iTunes customer-reviews RSS (public, no auth)
   - Google Play Store via google-play-scraper (public, no auth)
 
 Columns kept per the problem statement (PII columns dropped at source):
@@ -15,71 +14,11 @@ Columns intentionally NOT written:
 from __future__ import annotations
 
 import csv
-import json
 import time
-import urllib.request
-from datetime import datetime, timedelta
+from datetime import datetime
 from pathlib import Path
 
 RAW_FIELDNAMES = ["platform", "rating", "title", "text", "date", "app_version", "country", "helpful_votes"]
-
-
-def fetch_appstore_reviews(app_id: str) -> list[dict]:
-    """
-    Pull reviews from the iTunes customer-reviews RSS feed.
-    Up to 10 pages x 50 reviews = 500 max.
-    No date filtering — all available reviews are returned.
-    Note: Apple deprecated this RSS feed; empty results are expected for many apps.
-    """
-    reviews: list[dict] = []
-
-    for page in range(1, 11):
-        url = (
-            f"https://itunes.apple.com/ca/rss/customerreviews/"
-            f"page={page}/id={app_id}/sortby=mostrecent/json"
-        )
-        try:
-            req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
-            with urllib.request.urlopen(req, timeout=30) as resp:
-                data = json.loads(resp.read().decode("utf-8"))
-        except Exception as exc:
-            print(f"  [App Store] page {page} failed: {exc}")
-            break
-
-        entries = data.get("feed", {}).get("entry", [])
-        if not entries:
-            break
-
-        for entry in entries:
-            # Skip app-metadata entry (no im:rating field)
-            if "im:rating" not in entry:
-                continue
-
-            raw_date = entry.get("updated", {}).get("label", "")
-            try:
-                review_date = datetime.fromisoformat(raw_date[:10])
-                date_str = review_date.strftime("%Y-%m-%d")
-            except (ValueError, TypeError):
-                date_str = ""
-
-            reviews.append({
-                "platform": "App Store",
-                "rating": entry.get("im:rating", {}).get("label", ""),
-                "title": entry.get("title", {}).get("label", ""),
-                "text": entry.get("content", {}).get("label", ""),
-                "date": date_str,
-                "app_version": entry.get("im:version", {}).get("label", ""),
-                "country": "CA",
-                "helpful_votes": entry.get("im:voteCount", {}).get("label", ""),
-            })
-
-        time.sleep(0.4)
-
-    print(f"  [App Store] fetched {len(reviews)} reviews")
-    if not reviews:
-        print("  [App Store] NOTE: Apple's public RSS feed returned no entries.")
-        print("             This is a known limitation of the deprecated iTunes RSS endpoint.")
-    return reviews
 
 
 def fetch_playstore_reviews(package_id: str, max_reviews: int = 500) -> list[dict]:
@@ -145,17 +84,13 @@ def save_raw_reviews(reviews: list[dict], output_path: str) -> int:
     return len(reviews)
 
 
-def fetch_all(app_id: str, package_id: str, output_path: str, weeks: int = 10) -> int:
-    """Fetch from both stores, merge, and save reviews_raw.csv."""
+def fetch_all(package_id: str, output_path: str, weeks: int = 10) -> int:
+    """Fetch from Google Play and save reviews_raw.csv."""
     print(f"Fetching reviews (target window: last {weeks} weeks, ending {datetime.now().strftime('%Y-%m-%d')}) ...")
 
-    appstore = fetch_appstore_reviews(app_id)
-    playstore = fetch_playstore_reviews(package_id, max_reviews=500)
+    reviews = fetch_playstore_reviews(package_id, max_reviews=500)
 
-    combined = appstore + playstore
-    combined.sort(key=lambda r: r.get("date", ""), reverse=True)
-
-    count = save_raw_reviews(combined, output_path)
+    count = save_raw_reviews(reviews, output_path)
     print(f"  saved {count} total reviews to {output_path}")
     return count
 
@@ -174,7 +109,6 @@ if __name__ == "__main__":
         str(project_root / "config" / "delivery.yaml"),
     )
     fetch_all(
-        app_id=cfg.appstore_app_id,
         package_id=cfg.playstore_package_id,
         output_path=str(project_root / "data" / "input" / "reviews_raw.csv"),
         weeks=cfg.review_window_weeks,

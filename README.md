@@ -9,7 +9,7 @@ Automated weekly pipeline that scrapes app store reviews, classifies themes with
 ## How it works
 
 ```
-App Store + Google Play
+Google Play (only — Apple iTunes RSS deprecated)
         ↓  pulse fetch
   reviews_raw.csv → reviews_clean.csv
         ↓  pulse run
@@ -108,6 +108,18 @@ Run artifacts (the generated note and email draft) are uploaded and kept for 30 
 | `config/delivery.yaml` | MCP server URL, Google Doc ID, email recipient, enable/disable delivery |
 
 To change the target Google Doc, update `docs_mcp.doc_id` in `config/delivery.yaml`.
+
+---
+
+## Deployment
+
+| Component             | Platform       | Status  |
+|-----------------------|----------------|---------|
+| Delivery (MCP server) | Cloud Run      | Live    |
+| Weekly pipeline       | GitHub Actions | Live    |
+| Frontend + backend    | Render         | TBD     |
+
+> **Note:** The Next.js frontend spawns Python subprocesses and reads local files — it cannot run on Vercel serverless. The full stack (Next.js + Python) deploys to Render as one service. See [DEPLOYMENT.md](DEPLOYMENT.md) for step-by-step instructions.
 
 ---
 

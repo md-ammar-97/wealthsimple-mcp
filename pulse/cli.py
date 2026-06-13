@@ -72,12 +72,11 @@ def dry_run(input_csv: str, output_dir: str) -> None:
 @click.option("--clean-output", default="data/output/reviews_clean.csv", show_default=True,
               help="Path for normalized/filtered reviews CSV")
 def fetch(weeks: int, raw_output: str, clean_output: str) -> None:
-    """Fetch real reviews from App Store (iTunes RSS) and Google Play, then normalize."""
+    """Fetch real reviews from Google Play, then normalize."""
     config = load_config()
-    app_id = getattr(config, "appstore_app_id", "1360669270")
     pkg_id = getattr(config, "playstore_package_id", "com.wealthsimple")
 
-    count = fetch_all(app_id=app_id, package_id=pkg_id, output_path=raw_output, weeks=weeks)
+    count = fetch_all(package_id=pkg_id, output_path=raw_output, weeks=weeks)
     if count == 0:
         click.echo("No reviews fetched — check your network connection.", err=True)
         sys.exit(1)

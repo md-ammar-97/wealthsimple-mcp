@@ -33,10 +33,10 @@ Step-by-step delivery guide for the full system. Each phase has a clear, testabl
 
 | Source | Method | Status |
 |---|---|---|
-| Google Play | `google-play-scraper` (`Sort.NEWEST`, `country=ca`, `lang=en`) | **Active** — primary data source |
-| Apple App Store | iTunes customer-reviews RSS (`/ca/rss/customerreviews/…/json`) | **Deprecated** — Apple returns 0 entries; fetched gracefully; empty result documented |
+| Google Play | `google-play-scraper` (`Sort.NEWEST`, `country=ca`, `lang=en`) | **Active** — sole data source |
+| Apple App Store | iTunes customer-reviews RSS | **REMOVED** — Apple's endpoint returns 0 results; `fetch_appstore_reviews()` deleted |
 
-The App Store RSS endpoint has been deprecated by Apple. All production data comes from Google Play. The fixture files (`sample_reviews.csv`) still cover both platforms for test coverage.
+All production data comes from Google Play. The `fetch_all()` function takes only `package_id` (no `app_id`). The fixture files (`sample_reviews.csv`) may include App Store platform rows for test coverage but no live fetch is attempted.
 
 ---
 
@@ -972,11 +972,17 @@ For every component verify before marking done:
 
 ---
 
-## Phase 5 — Optional MCP Delivery
+## Phase 5 — MCP Delivery (Complete)
 
-**Goal:** Implement the Google Docs and Gmail MCP delivery extensions from [architecture §15.2](architecture.md). These are disabled by default (`docs_mcp.enabled: false`, `gmail_mcp.enabled: false`) and must not affect Phase 3 pipeline success criteria in any way.
+**Status:** Implemented and live. Delivery runs automatically at the end of every CI run.
 
-**Demo milestone:** Set both MCP flags to `true` in `config/delivery.yaml`; run `pulse run`; confirm weekly section appended to Google Doc and Gmail draft created; re-run without `--force` → delivery skipped (idempotency guard).
+**Delivery layer:** `google-mcp-server` on Google Cloud Run
+- URL: `https://mcp-server-google-695514226672.europe-west1.run.app`
+- Auth: `X-Api-Key` header from `MCP_API_KEY` env var (matches `SERVER_API_KEY` in Cloud Run)
+- Credentials: Google OAuth2 tokens injected via Google Secret Manager at runtime
+- Both flags are enabled in `config/delivery.yaml` (`docs_mcp.enabled: true`, `gmail_mcp.enabled: true`)
+
+**Demo milestone (achieved):** Pipeline appends weekly section to Google Doc and creates Gmail draft. Re-run without `--force` skips delivery (idempotency guard). Delivery failures are non-fatal — logged to `run_data["errors"]` and printed to stderr in CI.
 
 ---
 
@@ -1019,7 +1025,7 @@ Implement `create_email_draft(email_text, config)` and `send_email(email_text, c
 
 ### 5.4 Credentials Rule
 
-OAuth tokens and service account keys must live **only** in `config/mcp/google_docs.json` and `config/mcp/gmail.json`. They must never appear in `config/pipeline.yaml`, `config/delivery.yaml`, any pipeline module, or any test fixture. Files in `config/mcp/` should be in `.gitignore`.
+OAuth tokens and service account keys live **only** in Google Secret Manager (`google-mcp-credentials`, `google-mcp-token`, `google-mcp-api-key`) — injected into the Cloud Run runtime environment. They must never appear in `config/pipeline.yaml`, `config/delivery.yaml`, any pipeline module, or any committed file. `MCP_API_KEY` is passed via GitHub Actions secrets and Render environment variables — never committed.
 
 ---
 
@@ -1046,8 +1052,8 @@ OAuth tokens and service account keys must live **only** in `config/mcp/google_d
 
 ```
 Phase 0 — Data Acquisition
-  Inputs: Google Play (google-play-scraper) + Apple App Store RSS (deprecated; returns empty)
-  Outputs: data/input/reviews_raw.csv (600 reviews), data/output/reviews_clean.csv (447 reviews)
+  Inputs: Google Play only (google-play-scraper; Apple iTunes RSS removed)
+  Outputs: data/input/reviews_raw.csv (raw), data/output/reviews_clean.csv (normalized)
      ↓
 Phase 1 — Foundation & Data Ingestion
   Consumes: data/output/reviews_clean.csv

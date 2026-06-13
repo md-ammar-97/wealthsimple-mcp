@@ -2,7 +2,7 @@
 groq==1.4.0
 google-genai==2.8.0
 
-# App store scrapers (app-store-scraper installed separately in CI with --no-deps)
+# App store scraper (Google Play only; Apple iTunes RSS removed)
 google-play-scraper==1.2.7
 
 # Embeddings + clustering

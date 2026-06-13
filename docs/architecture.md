@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document describes the production architecture for the **Wealthsimple App Review Insights Analyser** — a weekly product review intelligence pipeline for Wealthsimple Canada. The system transforms public App Store and Google Play review exports into a concise, stakeholder-ready weekly pulse note and email draft. It is designed to be operationally repeatable, auditable, PII-safe, and implementable by a small team without infrastructure overhead.
+This document describes the production architecture for the **Wealthsimple App Review Insights Analyser** — a weekly product review intelligence pipeline for Wealthsimple Canada. The system transforms public Google Play review exports into a concise, stakeholder-ready weekly pulse note and email draft. It is designed to be operationally repeatable, auditable, PII-safe, and implementable by a small team without infrastructure overhead.
 
 **What it is not:** a real-time monitoring system, a BI dashboard, a scraper, or an account-level analytics tool.
 
@@ -91,7 +91,7 @@ This document describes the production architecture for the **Wealthsimple App R
 
 | Layer | Name | Responsibility | Must Not |
 |---|---|---|---|
-| 0 | Data Acquisition | Fetch public reviews from iTunes RSS and google-play-scraper; save `reviews_raw.csv`; normalize (drop short/emoji/non-English); save `reviews_clean.csv` | Scrape login-gated pages; write PII fields (`reviewId`, `userName`, `userImage`, `reviewCreatedVersion`, `at`, `replyContent`, `repliedAt`) |
+| 0 | Data Acquisition | Fetch public reviews via `google-play-scraper` (Google Play only; Apple iTunes RSS removed — returns 0 results); save `reviews_raw.csv`; normalize (drop short/emoji/non-English); save `reviews_clean.csv` | Scrape login-gated pages; write PII fields (`reviewId`, `userName`, `userImage`, `reviewCreatedVersion`, `at`, `replyContent`, `repliedAt`) |
 | 1 | Data Intake & Validation | Accept `reviews_clean.csv`, validate schema, filter date window, deduplicate | Pass invalid rows downstream |
 | 2 | Privacy & Normalisation | Redact PII from title and text; flag PII rows | Send raw title/text to LLM; write raw PII to any output file |
 | 3 | Analysis & Reasoning | Classify themes, rank top 3, select and validate quotes, generate action ideas | Invent quotes; hallucinate themes; classify using raw PII fields |
@@ -108,8 +108,8 @@ This document describes the production architecture for the **Wealthsimple App R
 │  LAYER 0 — DATA ACQUISITION  (pulse fetch)                               │
 │  ┌──────────────────────────────────────────────────────────────────┐   │
 │  │  fetch_reviews.py                                                  │   │
-│  │  · iTunes customer-reviews RSS  (App Store, up to 10 pages)       │   │
-│  │  · google-play-scraper          (Google Play, newest-first)        │   │
+│  │  · google-play-scraper  (Google Play, newest-first, CA locale)     │   │
+│  │  · Apple iTunes RSS removed — endpoint returns 0 results           │   │
 │  │  · Drops PII columns at source: reviewId, userName, userImage,     │   │
 │  │    reviewCreatedVersion, at, replyContent, repliedAt               │   │
 │  │  · Saves → data/input/reviews_raw.csv  (unfiltered)               │   │
@@ -320,7 +320,7 @@ MCP_Project/
 ## 6. End-to-End Run Flow
 
 ```
-1.  OPERATOR exports reviews.csv from aggregator (App Store + Google Play, 8–12 weeks)
+1.  OPERATOR triggers `pulse fetch` (Google Play only — iTunes RSS removed)
 2.  Drop file at: data/input/reviews.csv
 3.  Trigger: python main.py  OR  pulse run --input data/input/reviews.csv
           OR  UI upload → POST /api/upload → POST /api/run
@@ -704,9 +704,21 @@ Quote integrity is a hard constraint. No invented or paraphrased quotes may be p
 
 ## 15. MCP Server and Delivery Architecture
 
-The pipeline exposes its core steps as **MCP tools** callable by Claude as the orchestrator. Delivery integrations are separated into optional MCP servers that are never loaded unless explicitly configured.
+Delivery is handled by **google-mcp-server** — a live FastAPI service deployed on Google Cloud Run that wraps Google Workspace APIs (Docs + Gmail). The pipeline calls it over HTTPS at the end of every run; delivery failures are non-fatal and do not affect pipeline exit code.
 
-> **v1 required deliverables are local files only.** The pipeline is considered complete when it has written `reviews_clean.csv`, `weekly_note.md`, `email_draft.txt`, and `run_summary.json` to the configured output directories. Google Docs and Gmail MCP delivery are optional production enhancements. They are not required for v1 and must not be on the critical path for any success criterion.
+**Live service:**
+```
+URL:    https://mcp-server-google-695514226672.europe-west1.run.app
+Region: europe-west1
+Auth:   X-Api-Key header (value = MCP_API_KEY env var, must match SERVER_API_KEY in Cloud Run)
+Creds:  Google OAuth2 tokens injected at runtime via Google Secret Manager
+         google-mcp-credentials  ← service account key
+         google-mcp-token        ← OAuth token
+         google-mcp-api-key      ← API key for X-Api-Key auth
+APPROVAL_MODE: auto (all actions auto-approved without operator confirmation)
+```
+
+> **Local files are always written first (EC-44).** `weekly_note.md` and `email_draft.txt` are written before any delivery attempt. Delivery is an optional layer on top of the local artifacts.
 
 ### 15.1 Pipeline MCP Tools
 
@@ -726,28 +738,29 @@ MCP Server: wealthsimple-review-pipeline
 └── Tool: write_run_summary     → writes run_summary.json; returns run_id + artifact paths
 ```
 
-### 15.2 Optional Delivery MCP Tools
+### 15.2 Delivery Endpoints (Live)
 
 ```
-MCP Server: wealthsimple-google-delivery  (loaded only if docs_mcp.enabled = true)
-│
-├── Tool: append_doc_section    → appends weekly section to canonical Google Doc
-│                                 (idempotency anchor: wealthsimple-{iso_week})
-└── Tool: create_email_draft    → creates Gmail draft; returns draft_id
-    OR
-    Tool: send_email            → sends email; returns message_id
-                                  (only if email_mode = "send")
+POST /append_to_doc        → appends pulse note section to Google Doc
+  Body: { "doc_id": "...", "content": "## period_key\n\n{note_text}" }
+  Response: { "chars_added": N }
+
+POST /create_email_draft   → creates Gmail draft
+  Body: { "to": "...", "subject": "...", "body": "..." }
+  Response: { "draft_id": "..." }
 ```
+
+Called from `pulse/delivery/docs_mcp.py` and `pulse/delivery/gmail_mcp.py`.
 
 ### 15.3 Delivery Separation Rules
 
 | Rule | Detail |
 |---|---|
-| Pipeline runs without Google delivery | All pipeline steps are fully independent of MCP delivery tools |
-| Google credentials never in pipeline config | OAuth tokens and service account keys live only in the MCP server environment files under `config/mcp/` |
-| Delivery failure does not fail the pipeline | Delivery errors are logged; local artifacts are always written first |
-| Idempotency for Doc append | Before appending, check for existing anchor `wealthsimple-{iso_week}`; skip if found unless `--force` |
-| Idempotency for email | Before creating draft/sending, check run ledger for prior delivery in this ISO week; skip if found unless `--force` |
+| Pipeline runs without Google delivery | All pipeline steps are fully independent of delivery |
+| Google credentials never in pipeline config | OAuth tokens and service account keys live in Google Secret Manager; never committed to the repo |
+| Delivery failure does not fail the pipeline | Delivery errors are caught, logged, added to `run_data["errors"]`, and printed to stderr; pipeline exits 0 |
+| Idempotency for Doc append | Checked via `run_data.delivery.doc_url`; skip if already delivered unless `--force` |
+| Idempotency for email | `check_delivery_guard(period_key, delivery_key)` checks run ledger; skip if found unless `--force` |
 
 ---
 
@@ -1104,5 +1117,21 @@ The following are explicitly **out of scope for v1** and must not be implemented
 
 ---
 
-*Document version: 2.0 — Production architecture revision.*
+---
+
+## 22. Deployment Architecture
+
+| Component | Platform | Trigger | Status |
+|---|---|---|---|
+| `google-mcp-server` | Google Cloud Run (`europe-west1`) | `git push` → Cloud Build → Cloud Run | Live |
+| Weekly pipeline | GitHub Actions | cron `0 8 * * 1` (Mon 08:00 UTC) + `workflow_dispatch` | Live |
+| Frontend + backend | Render (Node.js + Python full-stack) | `git push main` | TBD |
+
+**Why Render, not Vercel:** The Next.js API routes spawn Python subprocesses via `spawn('python', ['-m', 'pulse.cli', ...])` and write to the local filesystem. Vercel serverless functions have a 10s timeout, no subprocess support, and no persistent filesystem between requests. The full stack must run on a persistent server environment.
+
+See [DEPLOYMENT.md](../DEPLOYMENT.md) for step-by-step deployment instructions.
+
+---
+
+*Document version: 2.1 — Updated to reflect live Cloud Run delivery, Google Play only, Render deployment target.*
 *Supersedes the MVP sketch in v1.0. Maintained alongside [context.md](context.md), [data_model.md](data_model.md), [design.md](design.md), and [edge_cases.md](edge_cases.md).*

@@ -224,6 +224,12 @@ def run_pipeline(
             log(run_id, "delivery", "gmail_mcp_error", error=str(delivery_exc))
             run_data["errors"].append(f"gmail_delivery: {delivery_exc}")
 
+        # Surface delivery errors in CI logs (errors array is written to artifact only)
+        if run_data.get("errors"):
+            import sys
+            for _err in run_data["errors"]:
+                print(f"[DELIVERY ERROR] {_err}", file=sys.stderr)
+
         # Write final summary (includes delivery results) and ledger
         write_run_summary(run_data, config, output_paths["run_summary"])
         append_ledger(run_data, config)
