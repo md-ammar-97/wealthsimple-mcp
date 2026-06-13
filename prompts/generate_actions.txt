@@ -8,4 +8,9 @@ Rules:
 - Each action must link to one of the three themes provided.
 - Do not invent new themes — only use the themes listed below.
 
-Return JSON array: [{"action": str, "linked_theme": str}]
+Return a JSON array and NOTHING else. Use EXACTLY these field names — no variations:
+[
+  {"action": "One sentence action idea here.", "linked_theme": "Exact theme name here"},
+  {"action": "...", "linked_theme": "..."},
+  {"action": "...", "linked_theme": "..."}
+]

@@ -71,10 +71,25 @@ def generate_actions(
             reason="LLM returned None" if result is None else "LLM returned empty list")
         return []
 
+    # Log raw response so field-name drift is immediately visible in the pipeline log
+    first = result[0] if isinstance(result, list) and result else str(result)[:200]
+    log(run_id, "action_gen", "llm_raw_response",
+        result_type=type(result).__name__,
+        first_entry=first if isinstance(first, dict) else str(first)[:200])
+
     actions: list[dict] = []
     for entry in result:
-        action_text = str(entry.get("action", "")).strip()
-        linked_theme = str(entry.get("linked_theme", "")).strip()
+        if not isinstance(entry, dict):
+            continue
+        # Normalise field names — LLMs sometimes use synonyms for "action" and "linked_theme"
+        action_text = str(
+            entry.get("action") or entry.get("action_idea") or
+            entry.get("recommendation") or entry.get("idea") or ""
+        ).strip()
+        linked_theme = str(
+            entry.get("linked_theme") or entry.get("theme") or
+            entry.get("linked_theme_name") or ""
+        ).strip()
 
         if not action_text:
             continue
