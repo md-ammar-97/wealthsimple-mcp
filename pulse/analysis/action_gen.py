@@ -66,8 +66,9 @@ def generate_actions(
         except (JSONParseError, Exception) as exc:
             log(run_id, "action_gen", "llm_error", attempt=attempt, error=str(exc))
 
-    if result is None:
-        log(run_id, "action_gen", "action_gen_failed_no_result")
+    if not result:
+        log(run_id, "action_gen", "action_gen_failed_no_result",
+            reason="LLM returned None" if result is None else "LLM returned empty list")
         return []
 
     actions: list[dict] = []

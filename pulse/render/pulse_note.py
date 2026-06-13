@@ -148,10 +148,11 @@ def _assemble_draft(
         if quote:
             lines.append(f'- "{quote}"')
 
-    lines.append("")
-    lines.append("## Action Ideas")
-    for i, ar in enumerate(action_records, 1):
-        lines.append(f"{i}. {ar['action']}")
+    if action_records:
+        lines.append("")
+        lines.append("## Action Ideas")
+        for i, ar in enumerate(action_records, 1):
+            lines.append(f"{i}. {ar['action']}")
 
     return "\n".join(lines), start_str, end_str, review_count
 
@@ -173,9 +174,8 @@ def generate_pulse_note(
     """
     # EC-33: verify required upstream data exists
     if not action_records:
-        raise MissingUpstreamFieldError(
-            "action_records is empty — action generation must have failed upstream."
-        )
+        log(run_id, "pulse_note", "actions_missing_using_empty",
+            warning="action generation returned no results — omitting Actions section")
     if not ranked_themes:
         raise MissingUpstreamFieldError(
             "ranked_themes is empty — theme classification must have failed upstream."
