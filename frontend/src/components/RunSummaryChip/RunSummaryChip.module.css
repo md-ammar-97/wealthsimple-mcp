@@ -1,0 +1,27 @@
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--md-sys-shape-corner-full);
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1.33;
+}
+
+.chip .material-symbols-outlined { font-size: 16px; }
+
+.success {
+  background: var(--md-sys-color-secondary-container);
+  color: var(--md-sys-color-on-secondary-container);
+}
+
+.warning {
+  background: #FFF3CD;
+  color: #856404;
+}
+
+[data-theme="dark"] .warning {
+  background: #3D2E00;
+  color: #FFD766;
+}

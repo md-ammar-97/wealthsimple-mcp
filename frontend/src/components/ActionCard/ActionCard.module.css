@@ -1,0 +1,55 @@
+.root {
+  background: var(--md-sys-color-surface-container-low);
+  border-radius: var(--md-sys-shape-corner-large);
+  padding: var(--space-5);
+  transition: box-shadow var(--md-sys-motion-duration-short4) var(--md-sys-motion-easing-standard);
+}
+
+.root:hover {
+  box-shadow: var(--shadow-2);
+}
+
+.root:hover .number {
+  background: var(--md-sys-color-primary);
+  color: var(--md-sys-color-on-primary);
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
+}
+
+.number {
+  font-family: 'DM Serif Display', serif;
+  font-size: 2.25rem;
+  line-height: 1;
+  background: var(--md-sys-color-primary-container);
+  color: var(--md-sys-color-on-primary-container);
+  border-radius: var(--md-sys-shape-corner-medium);
+  padding: var(--space-1) var(--space-3);
+  min-width: 52px;
+  text-align: center;
+  transition:
+    background var(--md-sys-motion-duration-short4) var(--md-sys-motion-easing-standard),
+    color       var(--md-sys-motion-duration-short4) var(--md-sys-motion-easing-standard);
+}
+
+.theme {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--md-sys-color-on-surface-variant);
+  background: var(--md-sys-color-surface-container-high);
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--md-sys-shape-corner-full);
+  text-align: right;
+  flex: 1;
+}
+
+.body {
+  font-size: 1rem;
+  line-height: 1.5;
+  color: var(--md-sys-color-on-surface);
+}

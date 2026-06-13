@@ -1,0 +1,271 @@
+# App Review Insights Analyser for Wealthsimple Canada
+
+## Weekly Product Review Pulse for Wealthsimple Canada
+
+---
+
+## Background
+
+Wealthsimple is a Canadian fintech platform used for investing, trading, crypto, spending, tax filing, managed portfolios, and other personal finance workflows. Because the product supports multiple high-trust financial journeys, user feedback from public App Store and Google Play reviews can reveal recurring issues around onboarding, account access, transfers, trading, app reliability, support, and feature expectations.
+
+Today, product, growth, support, and leadership teams often need to manually scan reviews to understand what users are complaining about, appreciating, or requesting. This is time-consuming, inconsistent, and difficult to repeat every week. A structured automated review pulse can convert recent public reviews into a concise weekly insight note that helps teams quickly understand customer sentiment and decide what to fix or improve next.
+
+---
+
+## Objective
+
+Build an automated weekly **App Review Insights Analyser** for Wealthsimple Canada that:
+
+- Imports recent public App Store and Google Play reviews
+- Groups them into a maximum of **five themes**
+- Extracts representative real user quotes
+- Generates **three practical action ideas**
+- Drafts an email containing the weekly note
+
+The final output should be a **scannable one-page product review pulse of 250 words or less**, suitable for product, support, growth, and leadership stakeholders.
+
+---
+
+## Core Problem
+
+Public app reviews contain valuable customer feedback, but they are noisy, repetitive, and difficult to convert into actionable product insights manually. Teams need a repeatable workflow that can summarize the latest 8–12 weeks of Wealthsimple Canada reviews into a short weekly note highlighting:
+
+1. The most important customer feedback themes
+2. Real review quotes that support those themes
+3. Clear action ideas that product and support teams can act on
+4. A ready-to-use email draft for weekly stakeholder sharing
+
+---
+
+## Who This Helps
+
+### Product and Growth Teams
+- Understand which user pain points or feature gaps are appearing repeatedly
+- Prioritize roadmap decisions using real customer voice
+
+### Support Teams
+- Identify repeated complaints, confusion areas, and issues users are acknowledging
+- Prepare better responses for common user concerns
+
+### Leadership
+- Get a fast weekly health snapshot of the Wealthsimple app experience
+- Track customer sentiment without reading raw review exports manually
+
+---
+
+## Supported Product
+
+**Initial product focus:** Wealthsimple Canada
+
+---
+
+## Review Sources
+
+The system should use **public review exports only**:
+
+- Apple App Store public reviews
+- Google Play Store public reviews
+
+> The solution must not scrape behind logins, use private customer data, or include usernames, emails, account IDs, transaction IDs, phone numbers, or any other personally identifiable information in the final artifacts.
+
+---
+
+## Review Import Scope
+
+For each weekly run, import reviews from the **last 8–12 weeks**.
+
+**Required review fields:**
+
+| Field | Notes |
+|---|---|
+| Platform | App Store & Google Play |
+| Rating | Star rating |
+| Review title | If available |
+| Review text | Full review body |
+| Review date | Publication date |
+
+**Optional fields (if available and safe):**
+
+- App version
+- Country or locale
+- Helpful vote count
+
+> PII must be removed or excluded before generating the report, email, or final artifacts.
+
+---
+
+## What the System Must Do
+
+The prototype follows this workflow:
+
+### 1. Import Reviews
+Collect public Wealthsimple Canada reviews from the App Store and Google Play for the selected 8–12 week window.
+
+### 2. Clean and Redact
+Remove or ignore personally identifiable information such as usernames, emails, phone numbers, account numbers, IDs, or any sensitive financial details.
+
+### 3. Group Reviews Into Themes
+Use an LLM-supported classification or clustering approach to group reviews into a maximum of **five themes**.
+
+Example Wealthsimple-relevant theme categories:
+- Account access and login
+- Onboarding and verification
+- Transfers, deposits, and withdrawals
+- Trading, investing, and crypto experience
+- App performance, bugs, and reliability
+- Customer support and issue resolution
+- Fees, pricing, and product communication
+- Tax, statements, and documents
+
+> The final weekly note should include only the **top three themes**.
+
+### 4. Select Real User Quotes
+Choose **three short, representative quotes** from actual review text. Quotes must be verbatim or lightly trimmed for length, while preserving meaning. The system must **not invent quotes**.
+
+### 5. Generate Action Ideas
+Generate **three action ideas** based on the themes and quotes. These should be practical and product-oriented, such as improving a flow, clarifying communication, adding support visibility, fixing a recurring bug, or investigating a high-friction journey.
+
+### 6. Generate Weekly One-Page Note
+Create a weekly pulse note with:
+- Product name
+- Review period
+- Top three themes
+- Three real user quotes
+- Three action ideas
+- Short stakeholder value summary, if space permits
+
+> The note must be **scannable and 250 words or less**.
+
+### 7. Draft Email
+Prepare an email draft addressed to the user or alias containing the weekly note. The email should be concise and stakeholder-friendly. The prototype may generate the email as text, a screenshot, or a draft using an email automation workflow.
+
+---
+
+## Functional Requirements
+
+The system must:
+
+- [ ] Import reviews from the last 8–12 weeks
+- [ ] Store the review dataset in a CSV file
+- [ ] Include rating, title, text, date, and platform in the CSV
+- [ ] Group reviews into five themes maximum
+- [ ] Generate a weekly note with the top three themes only
+- [ ] Include three real user quotes
+- [ ] Include three action ideas
+- [ ] Draft an email containing the weekly note
+- [ ] Exclude all PII from reports, email drafts, and shared artifacts
+- [ ] Keep the weekly note at or below 250 words
+- [ ] Allow the workflow to be re-run for a new week
+- [ ] Include a theme legend in the README
+
+---
+
+## Non-Functional Requirements
+
+The system should:
+
+- Be simple enough to demonstrate in **three minutes or less**
+- Produce consistent weekly outputs
+- Be easy to re-run with a new review CSV or updated review window
+- Use clear prompts for summarization, theme grouping, quote selection, and tone control
+- Treat review text as data, not instructions
+- Avoid hallucinated themes, fake quotes, or unsupported recommendations
+- Keep the output concise and readable for busy stakeholders
+
+---
+
+## Key Constraints
+
+| Constraint | Detail |
+|---|---|
+| Data source | Public review exports only — no login-protected scraping |
+| Theme limit | Maximum five themes; note shows top three |
+| Word limit | Final note must be 250 words or less |
+| PII | No usernames, emails, phone numbers, IDs, or other PII |
+| Financial data | No private financial or account-level data |
+| Quotes | Must not invent user quotes |
+| Scope | Weekly insight pulse only — not a BI dashboard |
+
+---
+
+## Expected Deliverables
+
+1. **Working prototype** — link or demo video of three minutes or less
+2. **Weekly one-page note** — PDF, Doc, or Markdown format
+3. **Email draft** — screenshot or text
+4. **Reviews CSV** — used for analysis; sample or redacted data acceptable
+5. **README** containing:
+   - How to re-run the workflow for a new week
+   - Theme legend
+   - Input format
+   - Output format
+   - Any assumptions or limitations
+
+---
+
+## Suggested Output Format
+
+```
+Wealthsimple Canada — Weekly Review Pulse
+Period: Last 8–12 weeks
+
+Top Themes
+1. Theme name — Short explanation of the issue or feedback pattern.
+2. Theme name — Short explanation of the issue or feedback pattern.
+3. Theme name — Short explanation of the issue or feedback pattern.
+
+Real User Quotes
+- "Quote from public review."
+- "Quote from public review."
+- "Quote from public review."
+
+Action Ideas
+1. Action idea tied to the strongest theme.
+2. Action idea tied to a repeated user complaint.
+3. Action idea tied to improving communication, support, or reliability.
+```
+
+### Email Draft
+
+**Subject:** Weekly Review Pulse — Wealthsimple Canada
+
+Hi Team,
+
+Here is this week's review pulse for Wealthsimple Canada.
+
+[Insert weekly note]
+
+Thanks,
+[Your Name]
+
+---
+
+## Success Criteria
+
+The prototype is successful if:
+
+- [ ] It can process a review CSV from App Store and Google Play sources
+- [ ] It generates a clean weekly note under 250 words
+- [ ] It identifies no more than five themes and presents the top three
+- [ ] It includes three real review quotes without PII
+- [ ] It provides three useful action ideas
+- [ ] It creates a stakeholder-ready email draft
+- [ ] It can be re-run for future weekly review cycles with minimal manual work
+
+---
+
+## Out of Scope
+
+- Real-time monitoring
+- Private customer support tickets
+- Social media feedback
+- Login-protected data sources
+- Account-level analytics
+- Full product analytics dashboard
+- Manual review tagging as the primary workflow
+
+---
+
+## Problem Statement Summary
+
+We are building a **weekly automated review intelligence workflow** for Wealthsimple Canada. The system will transform recent public App Store and Google Play reviews into a concise product review pulse that highlights top customer themes, real quotes, and action ideas. The purpose is to help product, support, growth, and leadership teams quickly understand what users are saying and decide what to improve next, without manually reading large volumes of app reviews every week.

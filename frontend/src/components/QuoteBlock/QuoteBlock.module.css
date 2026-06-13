@@ -1,0 +1,52 @@
+.root {
+  position: relative;
+  padding: var(--space-6) var(--space-6) var(--space-4);
+  background: var(--md-sys-color-surface-container-low);
+  border-radius: var(--md-sys-shape-corner-large);
+  border-left: 2px solid transparent;
+  transition: border-color var(--md-sys-motion-duration-short4) var(--md-sys-motion-easing-standard);
+}
+
+.root:hover {
+  border-left-color: var(--md-sys-color-primary);
+}
+
+.blockquote { position: relative; }
+
+.openQuote {
+  font-family: 'DM Serif Display', serif;
+  font-size: 2.25rem;
+  line-height: 0;
+  color: var(--md-sys-color-primary);
+  opacity: 0.15;
+  position: absolute;
+  top: -4px;
+  left: -8px;
+  user-select: none;
+  aria-hidden: true;
+}
+
+.text {
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--md-sys-color-on-surface);
+  padding-left: var(--space-4);
+}
+
+.attribution {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-top: var(--space-3);
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--md-sys-color-on-surface-variant);
+  justify-content: flex-end;
+}
+
+.platform {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+.platform .material-symbols-outlined { font-size: 14px; }

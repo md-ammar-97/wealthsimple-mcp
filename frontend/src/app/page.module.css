@@ -1,0 +1,98 @@
+.main {
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-8) var(--space-4);
+  background: var(--md-sys-color-surface);
+}
+
+.hero {
+  max-width: 720px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--space-6);
+}
+
+.headline {
+  font-family: 'DM Serif Display', serif;
+  font-size: clamp(2rem, 5vw, 2.8125rem);
+  font-weight: 400;
+  line-height: 1.2;
+  color: var(--md-sys-color-on-surface);
+}
+
+.brand {
+  color: var(--md-sys-color-primary);
+}
+
+.subtitle {
+  font-size: 1.125rem;
+  line-height: 1.6;
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.cta {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  background: var(--md-sys-color-primary);
+  color: var(--md-sys-color-on-primary);
+  font-size: 1rem;
+  font-weight: 500;
+  padding: var(--space-4) var(--space-8);
+  border-radius: var(--md-sys-shape-corner-full);
+  text-decoration: none;
+  box-shadow: var(--shadow-2);
+  transition:
+    background var(--md-sys-motion-duration-short4) var(--md-sys-motion-easing-standard),
+    transform  var(--md-sys-motion-duration-short4) var(--md-sys-motion-easing-standard);
+}
+.cta:hover { transform: scale(1.02); }
+
+.pipelineStrip {
+  display: flex;
+  align-items: center;
+  background: var(--md-sys-color-surface-container-low);
+  border-radius: var(--md-sys-shape-corner-large);
+  padding: var(--space-4) var(--space-5);
+  gap: 0;
+  flex-wrap: wrap;
+  justify-content: center;
+  row-gap: var(--space-3);
+  max-width: 100%;
+}
+
+.stepPill {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.stepIcon {
+  font-size: 16px;
+  color: var(--md-sys-color-primary);
+}
+
+.stepLabel {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--md-sys-color-on-surface-variant);
+  white-space: nowrap;
+}
+
+.connector {
+  display: block;
+  width: 16px;
+  height: 1px;
+  background: var(--md-sys-color-outline-variant);
+  margin-right: var(--space-1);
+}
+
+.tagline {
+  font-size: 0.875rem;
+  color: var(--md-sys-color-on-surface-variant);
+}

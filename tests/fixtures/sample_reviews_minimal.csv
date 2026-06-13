@@ -1,0 +1,4 @@
+platform,rating,title,text,date,app_version,country,helpful_votes
+App Store,2,App crashes,"The app crashes every time I try to open it.",2026-05-15,24.10.1,CA,1
+Google Play,3,Slow performance,"The app is very slow and takes a long time to load.",2026-05-14,24.9.5,CA,0
+App Store,1,Cannot login,"I am unable to login to my account for the past two days.",2026-05-13,24.10.0,CA,2

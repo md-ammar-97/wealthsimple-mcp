@@ -1,0 +1,157 @@
+.rail {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.rail::-webkit-scrollbar { display: none; }
+
+/* ── Step item ──────────────────────────────── */
+.stepItem {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  min-width: 80px;
+}
+
+.stepBody {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  width: 80px;
+  flex-shrink: 0;
+}
+
+/* ── Icon wrapper ───────────────────────────── */
+.iconWrap {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--md-sys-shape-corner-medium);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    background var(--md-sys-motion-duration-short4) var(--md-sys-motion-easing-standard),
+    color       var(--md-sys-motion-duration-short4) var(--md-sys-motion-easing-standard);
+}
+
+.state_idle {
+  background: var(--md-sys-color-surface-container-high);
+  color: var(--md-sys-color-on-surface-variant);
+  opacity: 0.5;
+}
+.state_active {
+  background: var(--md-sys-color-primary-container);
+  color: var(--md-sys-color-on-primary-container);
+  opacity: 1;
+}
+.state_done {
+  background: var(--md-sys-color-primary);
+  color: var(--md-sys-color-on-primary);
+}
+.state_error {
+  background: var(--md-sys-color-error-container);
+  color: var(--md-sys-color-error);
+  opacity: 1;
+}
+
+.icon {
+  font-size: 18px;
+  user-select: none;
+  display: block;
+}
+.iconError { color: var(--md-sys-color-error); }
+
+/* Pulsing glow ring on active step */
+.glowRing {
+  position: absolute;
+  inset: -6px;
+  border-radius: var(--md-sys-shape-corner-large);
+  border: 2px solid var(--md-sys-color-primary);
+  pointer-events: none;
+}
+
+/* ── Labels ─────────────────────────────────── */
+.labelWrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  text-align: center;
+}
+
+.label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--md-sys-color-on-surface);
+  white-space: nowrap;
+}
+
+.detail {
+  font-size: 0.6875rem;
+  color: var(--md-sys-color-on-surface-variant);
+  text-align: center;
+  max-width: 90px;
+  line-height: 1.3;
+}
+.detailError { color: var(--md-sys-color-error); }
+
+/* ── Connector ──────────────────────────────── */
+.connector {
+  flex: 1;
+  height: 2px;
+  background: var(--md-sys-color-outline-variant);
+  position: relative;
+  overflow: hidden;
+  margin-bottom: 20px; /* align with icon vertically */
+  min-width: 16px;
+}
+
+.connectorFill {
+  position: absolute;
+  inset: 0;
+  background: var(--md-sys-color-primary);
+}
+
+/* ── Mobile: vertical stepper ───────────────── */
+@media (max-width: 767px) {
+  .rail {
+    flex-direction: column;
+    gap: 0;
+    overflow-x: visible;
+  }
+
+  .stepItem {
+    flex-direction: column;
+    align-items: flex-start;
+    min-width: unset;
+    width: 100%;
+  }
+
+  .stepBody {
+    flex-direction: row;
+    width: 100%;
+    align-items: center;
+    padding: var(--space-3) 0;
+  }
+
+  .labelWrap { align-items: flex-start; }
+
+  .connector {
+    width: 2px;
+    height: 24px;
+    min-width: unset;
+    margin-bottom: 0;
+    margin-left: 19px; /* centre on 40px icon */
+  }
+
+  .connectorFill {
+    transform-origin: top center;
+  }
+}

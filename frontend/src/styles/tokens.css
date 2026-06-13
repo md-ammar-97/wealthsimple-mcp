@@ -1,0 +1,161 @@
+/* ============================================================
+   Design tokens — M3 colour, type, shape, motion, spacing
+   Source colour: #00C086 (Wealthsimple brand green)
+   ============================================================ */
+
+:root {
+  /* ── Primary ─────────────────────────────────────── */
+  --md-sys-color-primary:                  #006B4B;
+  --md-sys-color-on-primary:               #FFFFFF;
+  --md-sys-color-primary-container:        #7DF8C3;
+  --md-sys-color-on-primary-container:     #00210F;
+
+  /* ── Secondary ───────────────────────────────────── */
+  --md-sys-color-secondary:                #4D6359;
+  --md-sys-color-on-secondary:             #FFFFFF;
+  --md-sys-color-secondary-container:      #CFE9DC;
+  --md-sys-color-on-secondary-container:   #0A1F17;
+
+  /* ── Tertiary ────────────────────────────────────── */
+  --md-sys-color-tertiary:                 #3E6374;
+  --md-sys-color-on-tertiary:              #FFFFFF;
+  --md-sys-color-tertiary-container:       #C2E8FC;
+  --md-sys-color-on-tertiary-container:    #001F2B;
+
+  /* ── Error ───────────────────────────────────────── */
+  --md-sys-color-error:                    #BA1A1A;
+  --md-sys-color-on-error:                 #FFFFFF;
+  --md-sys-color-error-container:          #FFDAD6;
+  --md-sys-color-on-error-container:       #410002;
+
+  /* ── Surface ─────────────────────────────────────── */
+  --md-sys-color-surface:                  #F5FBF6;
+  --md-sys-color-on-surface:               #171D1A;
+  --md-sys-color-surface-variant:          #DBE5DE;
+  --md-sys-color-on-surface-variant:       #404944;
+  --md-sys-color-surface-container-lowest: #FFFFFF;
+  --md-sys-color-surface-container-low:    #EFF5F0;
+  --md-sys-color-surface-container:        #E9EFEb;
+  --md-sys-color-surface-container-high:   #E4EAE5;
+  --md-sys-color-surface-container-highest:#DEE4DF;
+
+  /* ── Outline ─────────────────────────────────────── */
+  --md-sys-color-outline:                  #707974;
+  --md-sys-color-outline-variant:          #BFC9C2;
+
+  /* ── Inverse ─────────────────────────────────────── */
+  --md-sys-color-inverse-surface:          #2B322E;
+  --md-sys-color-inverse-on-surface:       #ECF2ED;
+  --md-sys-color-inverse-primary:          #60DB9E;
+
+  /* ── Theme category colours ──────────────────────── */
+  --color-theme-account:    #006B4B;
+  --color-theme-transact:   #3E6374;
+  --color-theme-technical:  #B85C00;
+  --color-theme-support:    #7A1A8E;
+  --color-theme-business:   #8B5000;
+  --color-theme-compliance: #005FAF;
+
+  /* ── Rating dot colours ──────────────────────────── */
+  --color-rating-1: #BA1A1A;
+  --color-rating-2: #D4690A;
+  --color-rating-3: #857400;
+  --color-rating-4: #3C6A00;
+  --color-rating-5: #006B4B;
+
+  /* ── Elevation (tonal) ───────────────────────────── */
+  --md-sys-elevation-0: var(--md-sys-color-surface-container-lowest);
+  --md-sys-elevation-1: var(--md-sys-color-surface-container-low);
+  --md-sys-elevation-2: var(--md-sys-color-surface-container);
+  --md-sys-elevation-3: var(--md-sys-color-surface-container-high);
+  --md-sys-elevation-4: var(--md-sys-color-surface-container-highest);
+
+  /* ── Shadows (modals + FAB only) ─────────────────── */
+  --shadow-1: 0 1px 2px rgba(0,0,0,.08);
+  --shadow-2: 0 2px 6px rgba(0,0,0,.10);
+  --shadow-3: 0 4px 12px rgba(0,0,0,.12);
+
+  /* ── Shape (corner radii) ────────────────────────── */
+  --md-sys-shape-corner-none:         0px;
+  --md-sys-shape-corner-extra-small:  4px;
+  --md-sys-shape-corner-small:        8px;
+  --md-sys-shape-corner-medium:       12px;
+  --md-sys-shape-corner-large:        16px;
+  --md-sys-shape-corner-extra-large:  28px;
+  --md-sys-shape-corner-full:         9999px;
+
+  /* ── Motion easing ───────────────────────────────── */
+  --md-sys-motion-easing-standard:          cubic-bezier(0.2, 0, 0, 1.0);
+  --md-sys-motion-easing-standard-decel:    cubic-bezier(0, 0, 0, 1.0);
+  --md-sys-motion-easing-standard-accel:    cubic-bezier(0.3, 0, 1, 1);
+  --md-sys-motion-easing-emphasized:        cubic-bezier(0.2, 0, 0, 1.0);
+  --md-sys-motion-easing-emphasized-decel:  cubic-bezier(0.05, 0.7, 0.1, 1.0);
+  --md-sys-motion-easing-emphasized-accel:  cubic-bezier(0.3, 0, 0.8, 0.15);
+
+  /* ── Duration tokens ─────────────────────────────── */
+  --md-sys-motion-duration-short1:  50ms;
+  --md-sys-motion-duration-short2:  100ms;
+  --md-sys-motion-duration-short3:  150ms;
+  --md-sys-motion-duration-short4:  200ms;
+  --md-sys-motion-duration-medium1: 250ms;
+  --md-sys-motion-duration-medium2: 300ms;
+  --md-sys-motion-duration-medium3: 350ms;
+  --md-sys-motion-duration-medium4: 400ms;
+  --md-sys-motion-duration-long1:   450ms;
+  --md-sys-motion-duration-long2:   500ms;
+  --md-sys-motion-duration-long3:   550ms;
+  --md-sys-motion-duration-long4:   600ms;
+
+  /* ── Spacing (4px base) ──────────────────────────── */
+  --space-1:   4px;
+  --space-2:   8px;
+  --space-3:   12px;
+  --space-4:   16px;
+  --space-5:   20px;
+  --space-6:   24px;
+  --space-8:   32px;
+  --space-10:  40px;
+  --space-12:  48px;
+  --space-16:  64px;
+  --space-20:  80px;
+}
+
+/* ── Dark scheme ─────────────────────────────────── */
+[data-theme="dark"] {
+  --md-sys-color-primary:                  #60DB9E;
+  --md-sys-color-on-primary:               #003824;
+  --md-sys-color-primary-container:        #005137;
+  --md-sys-color-on-primary-container:     #7DF8C3;
+
+  --md-sys-color-secondary:                #B3CCBE;
+  --md-sys-color-on-secondary:             #1F352B;
+  --md-sys-color-secondary-container:      #354B41;
+  --md-sys-color-on-secondary-container:   #CFE9DC;
+
+  --md-sys-color-tertiary:                 #A6CCDF;
+  --md-sys-color-on-tertiary:              #073546;
+  --md-sys-color-tertiary-container:       #244C5E;
+  --md-sys-color-on-tertiary-container:    #C2E8FC;
+
+  --md-sys-color-error:                    #FFB4AB;
+  --md-sys-color-on-error:                 #690005;
+  --md-sys-color-error-container:          #93000A;
+  --md-sys-color-on-error-container:       #FFDAD6;
+
+  --md-sys-color-surface:                  #0F1511;
+  --md-sys-color-on-surface:               #DEE4DF;
+  --md-sys-color-surface-variant:          #404944;
+  --md-sys-color-on-surface-variant:       #BFC9C2;
+  --md-sys-color-surface-container-lowest: #0A0F0C;
+  --md-sys-color-surface-container-low:    #171D1A;
+  --md-sys-color-surface-container:        #1B2120;
+  --md-sys-color-surface-container-high:   #262B28;
+  --md-sys-color-surface-container-highest:#303633;
+
+  --md-sys-color-outline:                  #899389;
+  --md-sys-color-outline-variant:          #404944;
+
+  --md-sys-color-inverse-surface:          #DEE4DF;
+  --md-sys-color-inverse-on-surface:       #2B322E;
+  --md-sys-color-inverse-primary:          #006B4B;
+}

@@ -1,0 +1,125 @@
+.root {
+  position: relative;
+  background: var(--md-sys-color-surface-container-low);
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: var(--md-sys-shape-corner-large);
+  overflow: hidden;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-4) var(--space-5);
+  background: var(--md-sys-color-surface-container);
+  border-bottom: 1px solid var(--md-sys-color-outline-variant);
+}
+
+.titleRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--md-sys-color-on-surface);
+}
+
+.btnRow { display: flex; gap: var(--space-2); }
+
+.actionBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--md-sys-color-on-surface-variant);
+  background: var(--md-sys-color-surface-container-high);
+  border: none;
+  border-radius: var(--md-sys-shape-corner-full);
+  padding: 6px var(--space-3);
+  cursor: pointer;
+  transition: background var(--md-sys-motion-duration-short4) var(--md-sys-motion-easing-standard);
+}
+.actionBtn:hover { background: var(--md-sys-color-surface-container-highest); }
+.actionBtn.active {
+  background: var(--md-sys-color-primary-container);
+  color: var(--md-sys-color-on-primary-container);
+}
+.actionBtn .material-symbols-outlined { font-size: 14px; }
+
+.envelope { padding: var(--space-5); }
+
+.metaTable {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: var(--space-3);
+}
+.metaKey {
+  font-family: 'Courier New', monospace;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--md-sys-color-on-surface-variant);
+  padding: 3px var(--space-4) 3px 0;
+  white-space: nowrap;
+  width: 80px;
+  vertical-align: top;
+}
+.metaVal {
+  font-family: 'Courier New', monospace;
+  font-size: 0.8125rem;
+  color: var(--md-sys-color-on-surface);
+  padding: 3px 0;
+}
+
+.nameInput {
+  font-family: 'Courier New', monospace;
+  font-size: 0.8125rem;
+  color: var(--md-sys-color-on-surface);
+  background: var(--md-sys-color-surface-container-high);
+  border: 1px solid var(--md-sys-color-outline);
+  border-radius: var(--md-sys-shape-corner-extra-small);
+  padding: 2px var(--space-2);
+  outline: none;
+  width: 240px;
+}
+.nameInput:focus {
+  outline: 2px solid var(--md-sys-color-primary);
+  outline-offset: 1px;
+}
+
+.divider {
+  border: none;
+  border-top: 1px solid var(--md-sys-color-outline-variant);
+  margin: var(--space-4) 0;
+}
+
+.body {
+  font-family: 'Courier New', monospace;
+  font-size: 0.8125rem;
+  line-height: 1.7;
+  color: var(--md-sys-color-on-surface);
+  white-space: pre-wrap;
+  word-break: break-word;
+  margin: 0;
+}
+
+/* ── Snackbar ───────────────────────────── */
+.snack {
+  position: absolute;
+  bottom: var(--space-4);
+  right: var(--space-4);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  background: var(--md-sys-color-inverse-surface);
+  color: var(--md-sys-color-inverse-on-surface);
+  font-size: 0.875rem;
+  font-weight: 500;
+  padding: var(--space-3) var(--space-5);
+  border-radius: var(--md-sys-shape-corner-small);
+  box-shadow: var(--shadow-2);
+  pointer-events: none;
+}

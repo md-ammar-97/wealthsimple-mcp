@@ -1,0 +1,135 @@
+.main {
+  min-height: 100dvh;
+  background: var(--md-sys-color-surface);
+}
+
+.loadingState, .errorState {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-4);
+  color: var(--md-sys-color-on-surface-variant);
+  font-size: 0.875rem;
+}
+
+.runLink {
+  color: var(--md-sys-color-primary);
+  font-weight: 500;
+  text-decoration: none;
+}
+.runLink:hover { text-decoration: underline; }
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Sticky header ───────────────────────── */
+.stickyHeader {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-3) var(--space-6);
+  background: var(--md-sys-elevation-4);
+  border-bottom: 1px solid var(--md-sys-color-outline-variant);
+  backdrop-filter: blur(12px);
+  flex-wrap: wrap;
+}
+
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--md-sys-color-on-surface-variant);
+  text-decoration: none;
+  border-radius: var(--md-sys-shape-corner-full);
+  padding: var(--space-2) var(--space-3);
+  transition: background var(--md-sys-motion-duration-short4) var(--md-sys-motion-easing-standard);
+  white-space: nowrap;
+}
+.backLink:hover { background: var(--md-sys-color-surface-container); }
+.backLink .material-symbols-outlined { font-size: 18px; }
+
+.headerActions {
+  margin-left: auto;
+  display: flex;
+  gap: var(--space-2);
+}
+
+.legendBtn, .exportBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--md-sys-color-on-surface-variant);
+  background: none;
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: var(--md-sys-shape-corner-full);
+  padding: 6px var(--space-3);
+  cursor: pointer;
+  transition: background var(--md-sys-motion-duration-short4) var(--md-sys-motion-easing-standard);
+}
+.legendBtn:hover, .exportBtn:hover { background: var(--md-sys-color-surface-container); }
+.legendBtn .material-symbols-outlined, .exportBtn .material-symbols-outlined { font-size: 16px; }
+
+/* ── Content ─────────────────────────────── */
+.content {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: var(--space-8) var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+}
+
+@media (max-width: 767px) {
+  .content { padding: var(--space-5) var(--space-4); }
+  .stickyHeader { padding: var(--space-3) var(--space-4); }
+}
+
+/* ── Sections ────────────────────────────── */
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.sectionTitle {
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: var(--md-sys-color-on-surface);
+  padding-bottom: var(--space-4);
+  border-bottom: 1px solid var(--md-sys-color-outline-variant);
+}
+
+/* ── Theme grid ──────────────────────────── */
+.themeGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: var(--space-4);
+}
+
+/* ── Quote list ──────────────────────────── */
+.quoteList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+/* ── Action grid ─────────────────────────── */
+.actionGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--space-4);
+}
+
+/* ── Print ───────────────────────────────── */
+@media print {
+  .stickyHeader { position: static; box-shadow: none; }
+  .headerActions, .backLink { display: none; }
+}

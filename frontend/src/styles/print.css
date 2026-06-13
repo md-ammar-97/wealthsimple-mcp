@@ -1,0 +1,57 @@
+@media print {
+  /* Hide nav, controls, interactive elements */
+  nav,
+  header,
+  [data-no-print],
+  button,
+  .fab {
+    display: none !important;
+  }
+
+  body {
+    background: #fff !important;
+    color: #000 !important;
+    font-size: 11pt;
+    line-height: 1.5;
+  }
+
+  /* Remove all shadows and tonal backgrounds */
+  * {
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+
+  /* Simplify borders */
+  [class*="card"],
+  [class*="banner"],
+  section {
+    border: 1px solid #ccc !important;
+    border-radius: 4px !important;
+    background: #fff !important;
+    break-inside: avoid;
+  }
+
+  /* Page footer */
+  .print-footer::after {
+    content: "Generated: " attr(data-generated) " · Wealthsimple Canada · Weekly Review Pulse";
+    display: block;
+    font-size: 9pt;
+    color: #666;
+    margin-top: 24px;
+    border-top: 1px solid #ccc;
+    padding-top: 8px;
+  }
+
+  /* Typography */
+  h1, h2 { color: #000 !important; }
+  a { color: #000 !important; text-decoration: none; }
+  a[href]::after { content: none; }
+
+  /* Ensure page breaks work */
+  h2, h3 { break-after: avoid; }
+  p, blockquote { break-inside: avoid; }
+
+  @page {
+    margin: 2cm;
+  }
+}

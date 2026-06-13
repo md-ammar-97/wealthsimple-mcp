@@ -1,0 +1,137 @@
+.root {
+  border: 2px dashed var(--md-sys-color-outline-variant);
+  border-radius: var(--md-sys-shape-corner-extra-large);
+  padding: var(--space-10) var(--space-8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 280px;
+  cursor: pointer;
+  transition:
+    border-color var(--md-sys-motion-duration-short4) var(--md-sys-motion-easing-standard),
+    background   var(--md-sys-motion-duration-short4) var(--md-sys-motion-easing-standard);
+  outline: none;
+}
+
+.root:focus-visible {
+  outline: 3px solid var(--md-sys-color-primary);
+  outline-offset: 2px;
+}
+
+.dragOver {
+  border-color: var(--md-sys-color-primary);
+  background: color-mix(in srgb, var(--md-sys-color-primary-container) 8%, transparent);
+}
+
+.hasError {
+  border-color: var(--md-sys-color-error);
+  background: color-mix(in srgb, var(--md-sys-color-error-container) 12%, transparent);
+}
+
+.disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.hiddenInput {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ── Placeholder ─────────────────────────── */
+.placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  text-align: center;
+}
+
+.uploadIcon {
+  font-size: 48px;
+  color: var(--md-sys-color-primary);
+}
+
+.headline {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--md-sys-color-on-surface);
+}
+
+.sub {
+  font-size: 0.875rem;
+  color: var(--md-sys-color-on-surface-variant);
+  margin-top: -var(--space-1);
+}
+
+.columnHint {
+  display: flex;
+  gap: var(--space-2);
+  font-size: 0.75rem;
+}
+.hintLabel { font-weight: 500; color: var(--md-sys-color-on-surface-variant); }
+.hintValue { color: var(--md-sys-color-on-surface-variant); }
+
+/* ── Error state ─────────────────────────── */
+.errorState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  text-align: center;
+}
+
+.errorIcon {
+  font-size: 40px;
+  color: var(--md-sys-color-error);
+}
+
+.errorText {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--md-sys-color-error);
+}
+
+.retryBtn {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--md-sys-color-primary);
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 0;
+}
+
+/* ── Valid state ─────────────────────────── */
+.validState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.successIcon {
+  font-size: 40px;
+  color: var(--md-sys-color-primary);
+}
+
+.fileChip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  background: var(--md-sys-color-secondary-container);
+  color: var(--md-sys-color-on-secondary-container);
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--md-sys-shape-corner-full);
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.rowCount {
+  font-size: 0.75rem;
+  color: var(--md-sys-color-on-surface-variant);
+}

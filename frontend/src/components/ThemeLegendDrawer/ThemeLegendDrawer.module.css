@@ -1,0 +1,113 @@
+.backdrop {
+  position: fixed;
+  inset: 0;
+  background: #000;
+  z-index: 40;
+}
+
+.drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: min(400px, 100vw);
+  background: var(--md-sys-color-surface-container-lowest);
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--shadow-3);
+  border-left: 1px solid var(--md-sys-color-outline-variant);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-6) var(--space-6) var(--space-5);
+  border-bottom: 1px solid var(--md-sys-color-outline-variant);
+  flex-shrink: 0;
+}
+
+.title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--md-sys-color-on-surface);
+}
+
+.closeBtn {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--md-sys-shape-corner-full);
+  border: none;
+  background: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--md-sys-color-on-surface-variant);
+  transition: background var(--md-sys-motion-duration-short4) var(--md-sys-motion-easing-standard);
+}
+.closeBtn:hover { background: var(--md-sys-color-surface-container-high); }
+.closeBtn .material-symbols-outlined { font-size: 20px; }
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: var(--space-4) var(--space-3);
+  overflow-y: auto;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.row {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-3);
+  border-radius: var(--md-sys-shape-corner-medium);
+  transition: background var(--md-sys-motion-duration-short4) var(--md-sys-motion-easing-standard);
+}
+.row:hover { background: var(--md-sys-color-surface-container); }
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-top: 6px;
+  flex-shrink: 0;
+}
+
+.rowContent {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.rowTop {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.codeBadge {
+  font-size: 0.6875rem;
+  font-weight: 500;
+  color: #fff;
+  padding: 2px 6px;
+  border-radius: var(--md-sys-shape-corner-full);
+  letter-spacing: 0.04em;
+}
+
+.label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--md-sys-color-on-surface);
+}
+
+.desc {
+  font-size: 0.75rem;
+  color: var(--md-sys-color-on-surface-variant);
+  line-height: 1.4;
+}

@@ -1,0 +1,75 @@
+.root {
+  background: var(--md-sys-elevation-1);
+  border-radius: var(--md-sys-shape-corner-large);
+  border-left: 4px solid transparent;
+  padding: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  transition: box-shadow var(--md-sys-motion-duration-short4) var(--md-sys-motion-easing-standard);
+}
+
+.root:hover { box-shadow: var(--shadow-2); }
+
+.top {
+  background: color-mix(in srgb, var(--md-sys-color-primary-container) 20%, var(--md-sys-elevation-1));
+}
+
+/* Left border colour by category */
+.root[data-category="account"]    { border-left-color: var(--color-theme-account); }
+.root[data-category="transact"]   { border-left-color: var(--color-theme-transact); }
+.root[data-category="technical"]  { border-left-color: var(--color-theme-technical); }
+.root[data-category="support"]    { border-left-color: var(--color-theme-support); }
+.root[data-category="business"]   { border-left-color: var(--color-theme-business); }
+.root[data-category="compliance"] { border-left-color: var(--color-theme-compliance); }
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.badge {
+  font-size: 0.75rem;
+  font-weight: 500;
+  padding: 2px var(--space-2);
+  border-radius: var(--md-sys-shape-corner-full);
+  color: #fff;
+  letter-spacing: 0.04em;
+}
+
+.badge_account    { background: var(--color-theme-account); }
+.badge_transact   { background: var(--color-theme-transact); }
+.badge_technical  { background: var(--color-theme-technical); }
+.badge_support    { background: var(--color-theme-support); }
+.badge_business   { background: var(--color-theme-business); }
+.badge_compliance { background: var(--color-theme-compliance); }
+
+.countChip {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--md-sys-color-on-surface-variant);
+  background: var(--md-sys-color-surface-container-high);
+  padding: 2px var(--space-2);
+  border-radius: var(--md-sys-shape-corner-full);
+}
+
+.name {
+  font-size: 1.375rem;
+  font-weight: 600;
+  line-height: 1.27;
+  color: var(--md-sys-color-on-surface);
+}
+
+.meta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.avgRating {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--md-sys-color-on-surface-variant);
+}

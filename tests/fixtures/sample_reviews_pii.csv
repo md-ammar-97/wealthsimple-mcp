@@ -1,0 +1,16 @@
+platform,rating,title,text,date,app_version,country,helpful_votes
+App Store,1,Contact me please,"Please fix my account issue. You can reach me at john.doe@example.com or call 416-555-1234.",2026-05-15,24.10.1,CA,3
+App Store,2,Account problem,"My account TXN1234567 has been frozen for two weeks with no explanation.",2026-05-14,24.10.0,CA,1
+Google Play,1,Wrong charges,"I was charged incorrectly. My transaction ID is RRSP123456. Please refund.",2026-05-13,24.9.5,CA,2
+App Store,3,Name issue,"My name is John Smith and my account shows the wrong balance.",2026-05-12,24.10.1,CA,0
+App Store,2,Phone number update,"Please update my phone number to 416.555.1234 as the verification SMS goes to old number.",2026-05-11,24.10.0,CA,1
+Google Play,1,Email bouncing,"My registered email user.name+tag@domain.co.uk is bouncing and I can't reset my password.",2026-05-10,24.9.5,CA,4
+App Store,1,I'm locked out,"I'm John and I can't access my account. My account number is 12345678 and it's been frozen.",2026-05-09,24.10.1,CA,2
+Google Play,2,Support needed,"I am Jane Doe and I need help with my transfer. Reference number 987654321.",2026-05-08,24.9.5,CA,1
+App Store,1,Multiple issues,"Contact me at support@myemail.org or 1-800-555-9999. Account ID WS12345678 is locked.",2026-05-07,24.10.0,CA,5
+App Store,2,Dot phone format,"The app keeps sending verification codes to my old number. New number is 416.555.0001.",2026-05-06,24.10.1,CA,0
+Google Play,3,RRSP reference,"My RRSP123456 account contribution limit is showing incorrectly.",2026-05-05,24.9.5,CA,1
+App Store,2,Transaction ID incorrect,"The transaction reference TXNAB1234567 shows wrong amount.",2026-05-04,24.10.0,CA,2
+App Store,1,Only account ID,TXN1234567,2026-05-14,24.10.1,CA,0
+Google Play,1,Only account ID 2,ACCT12345678,2026-05-13,24.9.5,CA,0
+App Store,1,john.smith@gmail.com says app is broken,App is very slow and keeps crashing every time I open it.,2026-05-12,24.10.1,CA,3

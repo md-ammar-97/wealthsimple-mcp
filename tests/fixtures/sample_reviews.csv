@@ -1,0 +1,53 @@
+platform,rating,title,text,date,app_version,country,helpful_votes
+App Store,2,Keeps logging me out,"Every time I open the app I have to log back in. Very annoying.",2026-05-15,24.10.1,CA,3
+App Store,1,Can't login at all,"I haven't been able to log into my account for three days. Please fix this immediately.",2026-05-14,24.10.1,CA,7
+App Store,2,Session keeps expiring,"My session expires every few minutes even when I'm actively using the app.",2026-05-12,24.10.0,CA,2
+Google Play,1,Login broken,"App logs me out constantly. I have to re-enter my password dozens of times a day.",2026-05-10,24.9.5,CA,5
+App Store,3,Two-factor authentication issues,"The two-factor authentication code never arrives by SMS. I'm locked out frequently.",2026-05-08,24.10.1,CA,4
+App Store,1,Cannot verify my identity,"The identity verification step has been stuck on processing for two weeks. No response from support.",2026-05-07,24.9.8,CA,8
+App Store,2,Onboarding is confusing,"Setting up my account took forever. The onboarding steps are unclear and I wasn't sure what documents to provide.",2026-05-06,24.9.8,CA,2
+Google Play,2,Document upload fails,"Every time I try to upload my ID for verification it says upload failed. Very frustrating.",2026-05-05,24.9.5,CA,6
+App Store,3,Verification took too long,"It took 3 weeks to get verified. Other platforms do it in hours.",2026-05-04,24.9.7,CA,1
+App Store,1,E-transfer not showing up,"I sent an e-transfer 5 days ago and it still hasn't appeared in my account.",2026-05-14,24.10.1,CA,9
+App Store,2,Deposit delay,"My bank transfer has been pending for 4 business days. This is unacceptable.",2026-05-13,24.10.0,CA,4
+Google Play,1,Withdrawal rejected,"My withdrawal was rejected with no explanation. I need my money.",2026-05-11,24.9.5,CA,6
+App Store,2,Transfer fees unclear,"I was charged a fee I didn't expect. The fee structure is not clearly explained anywhere.",2026-05-10,24.10.1,CA,3
+App Store,3,Slow transfer speeds,"Transfers take 3-5 business days which is very slow compared to competitors.",2026-05-09,24.9.8,CA,2
+Google Play,4,Good transfer experience,"Transfers are usually fast and the notifications keep me informed.",2026-05-08,24.9.5,CA,1
+App Store,1,Crypto trading glitch,"When I try to buy Bitcoin the app freezes and I end up buying the wrong amount.",2026-05-15,24.10.1,CA,11
+App Store,2,Stock prices delayed,"The stock prices shown in the app are always 15 minutes behind which causes me to make poor trades.",2026-05-13,24.10.0,CA,5
+Google Play,1,Crypto portfolio disappeared,"My entire crypto portfolio disappeared from the app. Extremely worried.",2026-05-12,24.9.5,CA,14
+App Store,3,Trading interface confusing,"The investing interface is too complicated. I can't figure out how to set limit orders.",2026-05-11,24.9.8,CA,3
+App Store,4,Love the investing features,"The robo-advisor is great and the automatic rebalancing saves me a lot of time.",2026-05-07,24.10.1,CA,2
+App Store,1,App crashes constantly,"The app crashes every time I try to open my portfolio. I've reinstalled it three times.",2026-05-15,24.10.1,CA,12
+App Store,1,Infinite loading screen,"The app just shows a loading spinner and never loads. Useless.",2026-05-14,24.10.0,CA,8
+Google Play,2,App very slow,"The app takes 45 seconds to load my account balance. Every action is painfully slow.",2026-05-13,24.9.5,CA,6
+App Store,1,Push notifications broken,"I stopped receiving push notifications for trades a month ago.",2026-05-12,24.10.1,CA,4
+App Store,2,Frequent crashes on iOS 17,"Since upgrading to iOS 17 the app crashes multiple times per day.",2026-05-10,24.9.8,CA,7
+Google Play,1,Black screen on launch,"App shows a black screen when I open it. Happens on two different Android devices.",2026-05-09,24.9.5,CA,9
+App Store,1,No response from support,"I've sent 5 emails to customer support over 3 weeks and haven't received a single reply.",2026-05-15,24.10.1,CA,15
+App Store,2,Chat support unhelpful,"The in-app chat support just sends canned responses that don't address my issue.",2026-05-13,24.10.0,CA,4
+Google Play,1,Support ticket ignored,"My support ticket has been open for 2 months with no resolution.",2026-05-11,24.9.5,CA,10
+App Store,3,Support resolved my issue eventually,"After many follow-ups support finally resolved my transfer problem. But it took too long.",2026-05-08,24.9.7,CA,2
+App Store,2,Hidden fees on currency conversion,"I was charged a 1.5% currency conversion fee that was never disclosed during the transaction.",2026-05-14,24.10.1,CA,5
+App Store,3,Confusing fee structure,"The fee page on the website is different from what the app shows. Very confusing.",2026-05-12,24.9.8,CA,3
+Google Play,2,Interest rate not competitive,"The RRSP interest rate is below market rate and I wasn't informed when it dropped.",2026-05-10,24.9.5,CA,2
+App Store,1,T4 slip missing,"My T4 slip for last year is not available in the app even though it's April.",2026-05-15,24.10.1,CA,8
+App Store,2,RRSP contribution room wrong,"The RRSP contribution room shown in the app doesn't match my CRA MyAccount.",2026-05-13,24.10.0,CA,6
+Google Play,3,Tax documents delayed,"The T5 slips were available much later than other platforms. Made filing my taxes stressful.",2026-05-11,24.9.5,CA,3
+App Store,5,Great experience overall,"I love the simple interface and the cashback features. Best finance app I've used.",2026-05-15,24.10.1,CA,4
+App Store,4,Very user friendly,"Simple clean design and easy to navigate. I recommend to all my friends.",2026-05-12,24.10.1,CA,2
+Google Play,5,Excellent customer service,"Support team was very helpful and resolved my problem within hours.",2026-05-09,24.9.5,CA,3
+App Store,3,Decent app but needs improvement,"Fonctionnalités de base sont bonnes mais l'application est lente et plante souvent.",2026-05-15,24.10.1,CA,1
+App Store,2,Problèmes de connexion,"Je n'arrive pas à me connecter depuis deux jours. Le code de vérification n'arrive jamais.",2026-05-14,24.10.0,CA,4
+Google Play,1,Application très lente,"L'application met plusieurs minutes à charger. C'est vraiment inacceptable pour une app bancaire.",2026-05-13,24.9.5,CA,3
+App Store,3,Service client décevant,"J'ai contacté le service client trois fois sans réponse satisfaisante. Très déçu.",2026-05-11,24.9.8,CA,2
+Google Play,4,Bonne application en général,"L'application est facile à utiliser et les transferts sont rapides en général.",2026-05-09,24.9.5,CA,1
+App Store,2,Frais cachés,"On ne m'a pas informé des frais de conversion de devises. Très déçu.",2026-05-08,24.10.0,CA,5
+App Store,3,Vérification d'identité lente,"La vérification d'identité prend trop de temps. Trois semaines pour un compte basique.",2026-05-07,24.9.8,CA,2
+Google Play,2,Dépôts retardés,"Mon virement bancaire est en attente depuis cinq jours ouvrables. C'est trop long.",2026-05-06,24.9.5,CA,3
+App Store,1,Keeps logging me out,"Every time I open the app I have to log back in. Very annoying.",2026-05-15,24.10.1,CA,3
+App Store,1,Keeps logging me out,"Every time I open the app I have to log back in. Very annoying.",2026-05-15,24.10.1,CA,3
+App Store,1,Keeps logging me out,"Every time I open the app I have to log back in. Very annoying.",2026-05-15,24.10.1,CA,3
+App Store,1,"Very detailed feedback on app performance","This is an extremely detailed review about the performance issues I have been experiencing with the Wealthsimple application over the past several months. The application has been crashing repeatedly on my iPhone 15 Pro running iOS 17.4.1. I have tried reinstalling the app multiple times, clearing the cache, restarting my phone, and even doing a factory reset but nothing seems to fix the persistent crashing issue. The crashes happen most frequently when I am trying to view my portfolio or when I attempt to execute a trade. I have lost money because of these crashes since my orders were not completed even though the app showed them as processing. Furthermore the loading times have become increasingly slow over the past few weeks and the app sometimes takes more than two minutes to display my portfolio balance. The portfolio charts also fail to load properly and show outdated information. I have contacted customer support about these issues but received only generic responses that did not address my specific problem. I am very disappointed with the quality of this application given that it handles my financial assets. I would strongly recommend that the development team prioritize stability improvements before adding new features. The constant crashes and slow performance make this app unreliable for active investors who need real-time information and quick trade execution. Please fix these critical issues as soon as possible.",2026-05-14,24.10.0,CA,20
+App Store,2,"Problèmes de déclaration fiscale","Les documents fiscaux pour l'année précédente ne sont toujours pas disponibles dans l'application bien que nous soyons en avril. J'ai besoin de mes relevés T5 et T4 pour compléter ma déclaration de revenus avant la date limite. Le service client n'a pas été en mesure de me dire quand ces documents seront disponibles.",2026-05-10,24.9.8,CA,7

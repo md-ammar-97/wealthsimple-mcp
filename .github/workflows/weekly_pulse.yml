@@ -1,0 +1,51 @@
+name: Weekly Pulse
+
+on:
+  schedule:
+    # Every Monday at 8:00 AM UTC
+    - cron: '0 8 * * 1'
+  workflow_dispatch:
+    # Allow manual trigger from GitHub Actions UI
+
+jobs:
+  pulse:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+
+      # Install CPU-only torch first to avoid downloading the large CUDA build
+      - name: Install torch (CPU)
+        run: pip install torch --extra-index-url https://download.pytorch.org/whl/cpu
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt && pip install -e .
+
+      # Fetch fresh reviews from App Store + Google Play
+      - name: Fetch reviews
+        run: pulse fetch --weeks 1 --raw-output data/input/reviews_raw.csv --clean-output data/output/reviews_clean.csv
+        env:
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+
+      # Run full pipeline: classify → note → email draft → append to doc
+      - name: Run pipeline
+        run: pulse run --input data/output/reviews_clean.csv --output-dir outputs
+        env:
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          MCP_API_KEY: ${{ secrets.MCP_API_KEY }}
+
+      # Upload run artifacts for debugging
+      - name: Upload run artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pulse-run-${{ github.run_id }}
+          path: outputs/
+          retention-days: 30

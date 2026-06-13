@@ -1,0 +1,37 @@
+.main {
+  min-height: 100dvh;
+  background: var(--md-sys-color-surface);
+}
+
+.nav {
+  padding: var(--space-4) var(--space-6);
+  border-bottom: 1px solid var(--md-sys-color-outline-variant);
+}
+
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--md-sys-color-on-surface-variant);
+  text-decoration: none;
+  border-radius: var(--md-sys-shape-corner-full);
+  padding: var(--space-2) var(--space-3);
+  transition: background var(--md-sys-motion-duration-short4) var(--md-sys-motion-easing-standard);
+}
+.backLink:hover { background: var(--md-sys-color-surface-container); }
+.backLink .material-symbols-outlined { font-size: 18px; }
+
+.content {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: var(--space-8) var(--space-6);
+}
+
+.loading {
+  font-size: 0.875rem;
+  color: var(--md-sys-color-on-surface-variant);
+  text-align: center;
+  padding: var(--space-12) 0;
+}
