@@ -11,6 +11,8 @@ jobs:
   pulse:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
     steps:
       - uses: actions/checkout@v4
@@ -20,32 +22,52 @@ jobs:
           python-version: '3.11'
           cache: pip
 
-      # Install CPU-only torch first to avoid downloading the large CUDA build
+      - name: Create data directories
+        run: mkdir -p data/input data/output outputs
+
+      - name: Cache HuggingFace models
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/huggingface
+          key: hf-bge-small-en-v1.5
+
+      # Install CPU-only torch to avoid downloading the large CUDA build
       - name: Install torch (CPU)
         run: pip install torch --extra-index-url https://download.pytorch.org/whl/cpu
 
       - name: Install dependencies
         run: pip install -r requirements.txt && pip install -e .
 
-      # Fetch fresh reviews from App Store + Google Play
+      # Fetch fresh reviews — if 0 reviews returned, skip pipeline gracefully
       - name: Fetch reviews
-        run: pulse fetch --weeks 1 --raw-output data/input/reviews_raw.csv --clean-output data/output/reviews_clean.csv
+        id: fetch
+        run: |
+          if pulse fetch --weeks 1 \
+              --raw-output data/input/reviews_raw.csv \
+              --clean-output data/output/reviews_clean.csv; then
+            echo "has_reviews=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_reviews=false" >> $GITHUB_OUTPUT
+            echo "Fetch returned 0 reviews — skipping pipeline this week."
+          fi
         env:
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
 
       # Run full pipeline: classify → note → email draft → append to doc
       - name: Run pipeline
+        if: steps.fetch.outputs.has_reviews == 'true'
         run: pulse run --input data/output/reviews_clean.csv --output-dir outputs
         env:
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           MCP_API_KEY: ${{ secrets.MCP_API_KEY }}
 
-      # Upload run artifacts for debugging
+      # Upload run artifacts for debugging (ignored if pipeline was skipped)
       - name: Upload run artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: pulse-run-${{ github.run_id }}
           path: outputs/
+          if-no-files-found: ignore
           retention-days: 30
