@@ -84,7 +84,8 @@ def run_pipeline(
     }
 
     output_paths = {
-        "clean_csv": str(Path(clean_csv_dir) / "reviews_clean.csv"),
+        # Write redacted CSV to a separate file so the input reviews_clean.csv is preserved
+        "clean_csv": str(Path(clean_csv_dir) / "reviews_redacted.csv"),
         "weekly_note": str(Path(output_dir) / "weekly_note.md"),
         "email_draft": str(Path(output_dir) / "email_draft.txt"),
         "run_summary": str(Path(output_dir) / "run_summary.json"),
