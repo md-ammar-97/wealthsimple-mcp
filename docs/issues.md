@@ -138,34 +138,30 @@ Added diagnostics:
 
 ## ISSUE-007 — "Pipeline exited 0 but summary status is 'running' after 10s"
 
-**Status:** IN PROGRESS (2026-06-13)  
-**Symptom:** The diagnostic message added in ISSUE-006 now surfaces in the browser: "Pipeline exited 0 but summary status is 'running' after 10s". Python exits code 0 via normal completion (confirmed: no `sys.exit(0)` in codebase; validation failures use `sys.exit(1)`). This means `run_pipeline()` returns normally and `write_run_summary()` at orchestrator.py line 238 IS called — but the file lands at the wrong path.
+**Status:** ROOT CAUSE FIXED LOCALLY (2026-06-14), awaiting Render deployment
+**Symptom:** The diagnostic message added in ISSUE-006 surfaces in the browser: "Pipeline exited 0 but summary status is 'running' after 10s". The live `/api/debug` endpoint confirms the Node placeholder remains unchanged after the child process exits.
 
 ### Root Cause
-The spawn call passes **relative paths**:
-```typescript
-spawn(PYTHON_BIN, ['-m', 'pulse.cli', 'run', '--input', 'data/input/reviews.csv'], {
-  cwd: PROJECT_ROOT, ...
-})
+Render launches:
+```bash
+python3 -m pulse.cli run ...
 ```
-Python resolves `outputs/run_summary.json` relative to its actual runtime CWD. If Render does not fully honor the `cwd` spawn option, Python writes to a different directory than `${PROJECT_ROOT}/outputs/`. Node's verification loop polls the wrong path and sees only the stale 'running' placeholder.
 
-**Confirmed non-causes:** No `sys.exit(0)` anywhere; delivery guard does not skip `write_run_summary`; `use_clustering: false`.
+`pulse/cli.py` defined the Click `main()` group but did not contain:
+```python
+if __name__ == "__main__":
+    main()
+```
+
+Running the module therefore imported the CLI definitions, performed no pipeline work, and exited successfully with code 0. Since `run_pipeline()` never ran, Python never replaced the Node-written `{status: "running"}` placeholder.
 
 ### Fix Applied
-Pass absolute paths so Python's runtime CWD is irrelevant:
-```typescript
-const INPUT_CSV = path.join(PROJECT_ROOT, 'data', 'input', 'reviews.csv');
-const child = spawn(PYTHON_BIN, [
-  '-m', 'pulse.cli', 'run',
-  '--input', INPUT_CSV,
-  '--output-dir', OUTPUTS_DIR,
-], { cwd: PROJECT_ROOT, env: { ...process.env, PYTHONUNBUFFERED: '1' } });
-console.log('[pipeline spawn]', PYTHON_BIN, '--input', INPUT_CSV, '--output-dir', OUTPUTS_DIR, 'cwd:', PROJECT_ROOT);
-```
-Also: non-JSON stdout (previously silently dropped) now logged via `console.log('[pipeline stdout]', line)`.
+- Added the missing module entrypoint to `pulse/cli.py`
+- Added a regression test that runs `python -m pulse.cli --help`
+- Passed Node's `runId` to Python via `--run-id` so placeholder, SSE, logs, and final summary share one ID
+- Retained the earlier absolute input/output path fix
 
-**Files:** `frontend/src/app/api/run/route.ts`
+**Files:** `pulse/cli.py`, `frontend/src/app/api/run/route.ts`, `tests/unit/test_cli.py`
 
 ---
 
@@ -173,5 +169,5 @@ Also: non-JSON stdout (previously silently dropped) now logged via `console.log(
 
 | Item | Where to look |
 |---|---|
-| Confirm ISSUE-007 fix resolved the path problem | Render logs: `[pipeline spawn]` shows absolute paths; no "unexpected summary status" after next deploy |
+| Confirm ISSUE-007 fix after deployment | Render logs should show structured Python `step_start` events and `/api/debug` should show a non-`running` summary |
 | Whether GROQ_API_KEY is set and Groq calls succeed | Render logs: Python stderr during step 3 (classify) |

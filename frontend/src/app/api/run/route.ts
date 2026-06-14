@@ -83,11 +83,19 @@ export async function POST() {
     '-m', 'pulse.cli', 'run',
     '--input', INPUT_CSV,
     '--output-dir', OUTPUTS_DIR,
+    '--run-id', runId,
   ], {
     cwd: PROJECT_ROOT,
     env: { ...process.env, PYTHONUNBUFFERED: '1' },
   });
-  console.log('[pipeline spawn]', PYTHON_BIN, '--input', INPUT_CSV, '--output-dir', OUTPUTS_DIR, 'cwd:', PROJECT_ROOT);
+  console.log(
+    '[pipeline spawn]',
+    PYTHON_BIN,
+    '--input', INPUT_CSV,
+    '--output-dir', OUTPUTS_DIR,
+    '--run-id', runId,
+    'cwd:', PROJECT_ROOT,
+  );
 
   child.stdout.on('data', (chunk: Buffer) => {
     for (const raw of chunk.toString().split('\n')) {

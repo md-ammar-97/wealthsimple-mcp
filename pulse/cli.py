@@ -98,3 +98,7 @@ def status(run_id: str) -> None:
     except FileNotFoundError as exc:
         click.echo(f"Error: {exc}", err=True)
         sys.exit(1)
+
+
+if __name__ == "__main__":
+    main()
