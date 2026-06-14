@@ -1,6 +1,6 @@
 # Review Pulse — App Store Intelligence
 
-Automated weekly pipeline that scrapes Google Play reviews for Wealthsimple Canada, classifies themes with an LLM, generates a structured insight note, and delivers it to a Google Doc and Gmail draft — hands-free. Also exposes a self-serve CSV upload flow for analysing any app.
+Automated weekly pipeline that scrapes Google Play reviews for Wealthsimple Canada, classifies themes with an LLM, generates a structured insight note, appends it to a Google Doc, and sends a stakeholder email. It also exposes a self-serve CSV upload flow for analysing any app.
 
 **Live app:** [wealthsimple-mcp.onrender.com](https://wealthsimple-mcp.onrender.com)
 **Weekly output doc:** [Pulse Notes — Wealthsimple Canada](https://docs.google.com/document/d/1CGfHgYXRhyEy3Yss9Qxmu1onO_roWWyTyo4u8CyKt9M/edit)
@@ -21,7 +21,7 @@ Google Play  (google-play-scraper, Monday 08:00 UTC via GitHub Actions)
   ┌─────────────────────────────────┐
   │  google-mcp-server (Cloud Run)  │
   │  POST /append_to_doc            │ → Google Doc
-  │  POST /create_email_draft       │ → Gmail draft
+  │  POST /send_email               │ → Gmail message
   └─────────────────────────────────┘
         ↓
   data/runs/ledger.json  ← committed back to repo by Actions
@@ -50,10 +50,11 @@ Every Monday at 8 AM UTC, GitHub Actions runs the full pipeline automatically an
 | Channel | Destination |
 |---|---|
 | Google Doc | [Pulse Notes](https://docs.google.com/document/d/1CGfHgYXRhyEy3Yss9Qxmu1onO_roWWyTyo4u8CyKt9M/edit) — new section appended each week |
-| Gmail draft | `mohdammar97@gmail.com` — ready to review and send |
+| Scheduled Gmail message | `mohdammar97@gmail.com` — sent automatically after a successful weekly run |
 | CSV upload email | User's submitted email address — report sent after pipeline completes |
 
 Delivery is handled by [google-mcp-server](https://mcp-server-google-695514226672.europe-west1.run.app) running on Cloud Run.
+The generated `outputs/email_draft.txt` remains a local audit artifact even when the configured delivery mode is `send`.
 
 ---
 
@@ -92,12 +93,29 @@ pulse fetch --weeks 1
 # Run full pipeline (ingest → classify → note → deliver)
 pulse run --input data/output/reviews_clean.csv
 
+# Run the pipeline without configured Doc/Gmail delivery
+# Used by the web upload flow, which sends once to the uploader afterward
+pulse run --input data/input/reviews.csv --skip-delivery
+
 # Dry run — ingest + redact only, no LLM calls, no delivery
 pulse dry-run --input data/output/reviews_clean.csv
 
 # Check status of a past run
 pulse status --run-id <run_id>
 ```
+
+---
+
+## CSV upload contract
+
+Required columns are `platform`, `rating`, `text`, and `date`. `title` is optional.
+
+- Platforms accept common App Store/iOS/Apple and Google Play/Android aliases.
+- Dates accept `YYYY-MM-DD`, ISO timestamps, `YYYY/MM/DD`, `DD/MM/YYYY`, and `MM/DD/YYYY`.
+- Rows with invalid platforms, ratings, dates, or text are rejected and counted by reason.
+- A run stops with a diagnostic error when no valid reviews remain after validation or after the configured date-window filter.
+
+The upload is saved to `data/input/reviews.csv`. `pulse fetch` writes normalized store data to `data/output/reviews_clean.csv`; pipeline PII redaction writes `data/output/reviews_redacted.csv`.
 
 ---
 
@@ -120,7 +138,7 @@ The workflow at [`.github/workflows/weekly_pulse.yml`](.github/workflows/weekly_
 
 You can also trigger it manually from the **Actions** tab → **Weekly Pulse** → **Run workflow**.
 
-Run artifacts (the generated note and email draft) are uploaded and kept for 30 days.
+Run artifacts (the generated note, email audit copy, and run summary) are uploaded and kept for 30 days.
 
 ---
 
@@ -163,8 +181,8 @@ pulse/
   utils/         logging, LLM wrapper, word count
 
 config/
-  pipeline.yaml  (use_clustering: false for Render; true for local)
-  delivery.yaml  (MCP enabled; email_recipient configured)
+  pipeline.yaml  (use_clustering: false; clustering can be enabled manually on larger hosts)
+  delivery.yaml  (Docs enabled; Gmail email_mode: send)
 
 frontend/
   src/app/
@@ -186,6 +204,21 @@ frontend/
     global.css         Base styles, .btn-*, .atlas-*, .badge-* primitives
 
 data/
+  input/
+    reviews.csv        Browser-uploaded CSV
+  output/
+    reviews_clean.csv  Normalized output from pulse fetch
+    reviews_redacted.csv PII-redacted pipeline audit output
   runs/
     ledger.json        Committed to repo by GitHub Actions after each weekly run
+```
+
+---
+
+## Verification
+
+```bash
+python -m pytest tests/unit -q   # 135 unit tests
+cd frontend
+npm run build
 ```

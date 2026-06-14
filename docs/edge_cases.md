@@ -45,8 +45,8 @@ This document catalogues known and anticipated edge cases across every pipeline 
 |---|---|
 | Condition | `date` column contains mixed formats, relative strings ("yesterday"), or unparseable values |
 | Risk | Incorrect date window filtering; silent exclusion of valid reviews |
-| Expected behaviour | Attempt ISO 8601 parse first, then `DD/MM/YYYY`; rows that remain unparseable are dropped and logged with row index |
-| Test scenario | Mix `2026-03-15`, `15/03/2026`, and `March 15 2026` in the same CSV; confirm first two parse and third is dropped |
+| Expected behaviour | Attempt ISO date/timestamp parsing first, then `DD/MM/YYYY`, `MM/DD/YYYY`, and `YYYY/MM/DD`; rows that remain unparseable are dropped and counted as `unparseable_date` |
+| Test scenario | Mix `2026-03-15`, `2026-03-15T10:30:00Z`, `15/03/2026`, and `15-03-2026`; confirm the first three parse and the hyphenated day-first date is dropped |
 
 ### EC-06 — Duplicate reviews
 | Field | Detail |
@@ -327,21 +327,21 @@ This document catalogues known and anticipated edge cases across every pipeline 
 ### EC-33 — Note template fields are missing
 | Field | Detail |
 |---|---|
-| Condition | Upstream step (e.g., action generation) failed and one of the three action slots is empty |
-| Risk | Rendering produces `{action_3}` as a literal string in the note |
-| Expected behaviour | Pipeline detects missing upstream output before attempting note assembly; halts with a clear error pointing to the failed step |
-| Test scenario | Mock a failed action generation step; confirm pipeline does not write a partial note |
+| Condition | Action generation returns no valid actions after retries |
+| Risk | Rendering fails or exposes empty placeholders |
+| Expected behaviour | Continue with a grounded note, omit the Action Ideas section, and retain an empty `actions` list in the run summary |
+| Test scenario | Mock action generation returning an empty list; confirm the note is written without an Action Ideas heading |
 
 ---
 
-## Stage 8 — Email Draft
+## Stage 8 — Email Rendering and Delivery
 
-### EC-34 — Missing `email_recipient` in `config.yaml`
+### EC-34 — Missing `email_recipient` in `config/delivery.yaml`
 | Field | Detail |
 |---|---|
 | Condition | `email_recipient` key is absent or blank in the config file |
 | Risk | Email draft has no recipient; `To:` line is empty or crashes |
-| Expected behaviour | Write `To: [configure email_recipient in config.yaml]` as a placeholder; log a warning; do not block the rest of the pipeline |
+| Expected behaviour | Write `To: [configure email_recipient in config/delivery.yaml]` as a placeholder; log a warning; do not block the rest of the pipeline |
 | Test scenario | Remove `email_recipient` from config; confirm email draft has the placeholder and a warning is logged |
 
 ### EC-35 — Markdown formatting in plain text email
@@ -356,18 +356,18 @@ This document catalogues known and anticipated edge cases across every pipeline 
 
 ## API & LLM Infrastructure
 
-### EC-36 — Anthropic API key missing or invalid
+### EC-36 — Primary and fallback LLM credentials missing or invalid
 | Field | Detail |
 |---|---|
-| Condition | `ANTHROPIC_API_KEY` environment variable is not set or is expired |
+| Condition | `GROQ_API_KEY` is missing or invalid and the configured Gemini fallback cannot be used |
 | Risk | All LLM steps fail; pipeline crashes without clear user guidance |
-| Expected behaviour | Detect missing key before first API call; exit with `"ANTHROPIC_API_KEY is not set — set it in your environment before running"`; write nothing to outputs |
-| Test scenario | Unset the env var; run pipeline; confirm the error message appears and no output files are created |
+| Expected behaviour | Detect the missing provider credential before the first call or surface the provider failure clearly; write an error summary and do not replace successful note/email artifacts |
+| Test scenario | Unset both LLM credentials; run the pipeline; confirm it fails before producing a new report |
 
-### EC-37 — API rate limit hit during batch classification
+### EC-37 — LLM provider rate limit hit during batch classification
 | Field | Detail |
 |---|---|
-| Condition | Large review volume triggers a 429 rate-limit response from the Anthropic API |
+| Condition | Large review volume triggers a 429 response from Groq or the configured fallback provider |
 | Risk | Pipeline crashes mid-classification; partial results |
 | Expected behaviour | Catch 429; apply exponential backoff (1s, 2s, 4s); retry up to 3 times; if all retries fail, log the batch index and skip; continue with remaining batches |
 | Test scenario | Mock 429 on the second batch; confirm first and third batches are processed and the second is skipped with a log entry |
@@ -420,8 +420,8 @@ This document catalogues known and anticipated edge cases across every pipeline 
 | Field | Detail |
 |---|---|
 | Condition | Week 1 window: March 1 – May 31. Week 2 window: March 15 – June 7. Some reviews appear in both |
-| Risk | No risk — each run is self-contained; no state is carried |
-| Expected behaviour | Each run processes its own window independently; no deduplication across runs is attempted |
+| Risk | No review-level correctness risk; ledger metrics may include overlapping windows |
+| Expected behaviour | Each analysis processes its own input window independently; no review-level deduplication across runs is attempted. Run summaries and ledger metadata are still persisted |
 | Test scenario | Submit overlapping CSVs on two consecutive runs; confirm both produce independent outputs |
 
 ### EC-44 — Output files already exist from a prior run
@@ -430,15 +430,47 @@ This document catalogues known and anticipated edge cases across every pipeline 
 | Condition | `outputs/weekly_note.md` and `outputs/email_draft.txt` exist before the new run starts |
 | Risk | Partial overwrite if pipeline fails mid-run; old artifacts mixed with new |
 | Expected behaviour | Delete or overwrite output files only after the pipeline completes successfully; if the run fails mid-way, old outputs remain untouched |
-| Test scenario | Start a run, mock a failure at the action generation step; confirm the old `weekly_note.md` is still present and unchanged |
+| Test scenario | Start a run, mock a failure during theme ranking; confirm the old `weekly_note.md` is still present and unchanged |
 
-### EC-45 — `config.yaml` `review_window_weeks` set outside 8–12 range
+### EC-45 — `config/pipeline.yaml` `review_window_weeks` outside the supported recommendation
 | Field | Detail |
 |---|---|
-| Condition | Operator sets `review_window_weeks: 4` or `review_window_weeks: 20` |
-| Risk | Results outside the validated scope of the problem; too little or too much data |
-| Expected behaviour | Log a warning: `"review_window_weeks is outside the recommended 8–12 range"`; proceed anyway; the operator takes responsibility |
-| Test scenario | Set `review_window_weeks: 3`; confirm warning is logged and the pipeline does not hard-exit |
+| Condition | Operator sets `review_window_weeks` below 8 or above 520 |
+| Risk | Too little data or an unexpectedly broad dataset |
+| Expected behaviour | Log a warning that the value is outside the recommended 8–520 range; proceed so the operator can intentionally use a custom window |
+| Test scenario | Set `review_window_weeks: 3`; confirm warning is logged and the pipeline does not hard-exit. Production currently uses 260 |
+
+### EC-46 — No valid reviews remain after ingestion
+| Field | Detail |
+|---|---|
+| Condition | Every row has an invalid platform/date/rating/text value, or every otherwise valid row is outside the configured date window |
+| Risk | The later analysis stage fails with an empty theme list and hides the real input problem |
+| Expected behaviour | Stop before classification and report `validation_drop_reasons` plus `rows_outside_window` in the error summary |
+| Test scenario | Submit rows with `iOS App` plus unsupported `DD-MM-YYYY` dates; confirm the error names the actual rejection counts |
+
+### EC-47 — Python exits 0 but summary remains `running`
+| Field | Detail |
+|---|---|
+| Condition | The subprocess exits successfully but `outputs/run_summary.json` is not updated from the placeholder within 10 seconds |
+| Risk | The browser displays stale artifacts as if they belong to the new run |
+| Expected behaviour | Treat the run as failed and report the unexpected final summary status |
+| Test scenario | Mock a process that exits 0 without updating the summary; confirm `/api/run` does not emit a successful completion |
+
+### EC-48 — Browser upload delivers twice
+| Field | Detail |
+|---|---|
+| Condition | The Python pipeline sends to the configured recipient and the Next.js route also sends to the uploader |
+| Risk | Duplicate delivery and disclosure to the wrong recipient |
+| Expected behaviour | Browser runs use `--skip-delivery`; only the Next.js route calls `/send_email` for the uploader |
+| Test scenario | Run an upload with mocked MCP calls; confirm no Python delivery occurs and exactly one uploader send is requested |
+
+### EC-49 — Draft created when a sent message is expected
+| Field | Detail |
+|---|---|
+| Condition | Delivery calls `/create_email_draft` or uses `email_mode: draft` while stakeholders expect immediate receipt |
+| Risk | The report appears in Gmail Drafts but no recipient receives it |
+| Expected behaviour | Production scheduled delivery uses `gmail_mcp.email_mode: send`; browser delivery calls `/send_email`; run summary records `message_id` |
+| Test scenario | Configure send mode and mock the MCP server; confirm the `/send_email` endpoint is used and `message_id` is stored |
 
 ---
 
@@ -478,7 +510,7 @@ This document catalogues known and anticipated edge cases across every pipeline 
 | EC-30 | Actions | Action exceeds 200 chars | Low |
 | EC-31 | Note | Note exceeds 250 words after polish | High |
 | EC-32 | Note | Markdown characters in quotes | Low |
-| EC-33 | Note | Missing upstream template fields | High |
+| EC-33 | Note | No valid action ideas | Low |
 | EC-34 | Email | Missing recipient in config | Low |
 | EC-35 | Email | Markdown in plain text email | Low |
 | EC-36 | API | Missing API key | High |
@@ -491,6 +523,10 @@ This document catalogues known and anticipated edge cases across every pipeline 
 | EC-43 | Re-run | Overlapping date windows | Low |
 | EC-44 | Re-run | Existing output files present | Medium |
 | EC-45 | Re-run | Out-of-range config value | Low |
+| EC-46 | Ingest | No valid reviews remain | High |
+| EC-47 | Frontend | Exit 0 but summary remains running | High |
+| EC-48 | Delivery | Browser upload sends twice | High |
+| EC-49 | Delivery | Draft created instead of send | High |
 
 **Severity key:**
 - **High** — pipeline produces wrong output, violates a hard constraint, or crashes silently

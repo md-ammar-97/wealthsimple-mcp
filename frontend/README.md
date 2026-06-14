@@ -64,11 +64,21 @@ MCP_API_KEY=...
 | Route | Method | Purpose |
 |---|---|---|
 | `/api/upload` | `POST` | Accept CSV + `email` + `appName`; save to `data/input/reviews.csv`; store meta in `global.csvMeta` |
-| `/api/run` | `POST` | Spawn `pulse run`; initialise `global.pipelineQueue`; return `{ runId }` immediately; send MCP email after exit code 0 |
+| `/api/run` | `POST` | Spawn `pulse run --skip-delivery`; initialise `global.pipelineQueue`; verify the final run summary; send one MCP email to the uploader |
 | `/api/pipeline/status` | `GET` (SSE) | Drain `global.pipelineQueue` at 500ms intervals; emit step state events |
 | `/api/results` | `GET` | Read `outputs/run_summary.json` + artifact files; return `RunResult` JSON |
 | `/api/analytics` | `GET` | Read `data/runs/ledger.json`; support `?days=` filter; return chart data + run history |
 | `/api/debug` | `GET` | Diagnostic endpoint — Python version, pulse install, filesystem state |
+
+---
+
+## CSV upload and delivery
+
+Required CSV headers are `platform`, `rating`, `text`, and `date`; `title` is optional. Platform values accept common App Store/iOS/Apple and Google Play/Android aliases. Dates accept ISO dates/timestamps, `YYYY/MM/DD`, `DD/MM/YYYY`, and `MM/DD/YYYY`.
+
+The upload route stores the file at `data/input/reviews.csv`. The run route invokes Python with an absolute input path, output path, generated run ID, and `--skip-delivery`. After Python exits, it waits for `outputs/run_summary.json` to report `success`, then calls the Google MCP server's `POST /send_email` endpoint using the submitted email address.
+
+Email failure is logged but does not discard a successfully generated report. The scheduled GitHub Actions path does not use `--skip-delivery`; it performs the configured Google Doc and Gmail delivery inside the Python pipeline.
 
 ---
 

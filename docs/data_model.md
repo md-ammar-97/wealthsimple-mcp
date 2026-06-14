@@ -8,9 +8,10 @@ The pipeline operates on three categories of data:
 |---|---|
 | **Ingested data** | Raw public review CSV dropped by the operator |
 | **Intermediate data** | In-memory dataframes and structured objects produced between pipeline steps |
-| **Output artifacts** | Files written to disk: cleaned CSV, weekly note, email draft |
+| **Output artifacts** | Files written to disk: redacted CSV, weekly note, email audit copy, run summary |
+| **Persistent metadata** | Per-run JSON summaries and `data/runs/ledger.json` |
 
-No database. No persistent state. Every field definition below is the contract that code must honour across pipeline steps.
+No database is required. JSON run summaries and the ledger provide status lookup, delivery idempotency, and analytics history.
 
 ---
 
@@ -21,15 +22,17 @@ No database. No persistent state. Every field definition below is the contract t
 **Delimiter:** comma (`,`)
 **Header row:** required
 
-### 1.1 Required Columns
+### 1.1 Input Columns
 
 | Column | Type | Nullable | Constraints | Notes |
 |---|---|---|---|---|
-| `platform` | `string` | No | Must be `"App Store"` or `"Google Play"` | Case-insensitive on ingest; normalised to title case |
-| `rating` | `integer` | No | 1 – 5 inclusive | Fractional values rounded to nearest integer |
+| `platform` | `string` | No | App Store/iOS/Apple or Google Play/Android alias | Case-insensitive; `_` and `-` are treated as spaces |
+| `rating` | `integer` | No | 1–5 inclusive after numeric coercion | Converted with `int(float(value))` |
 | `title` | `string` | Yes | Max 500 characters | Empty string treated as null |
 | `text` | `string` | No | Min 5 characters after strip | Rows with empty `text` are dropped |
-| `date` | `string` | No | ISO 8601 (`YYYY-MM-DD`) preferred; falls back to `DD/MM/YYYY` | Parsed to `datetime` on ingest |
+| `date` | `string` | No | ISO date/timestamp, `YYYY/MM/DD`, `DD/MM/YYYY`, or `MM/DD/YYYY` | Parsed to a UTC-normalized naive `datetime` |
+
+Required headers are `platform`, `rating`, `text`, and `date`. `title` is optional. Hyphenated `DD-MM-YYYY` is not currently accepted.
 
 ### 1.2 Optional Columns
 
@@ -67,6 +70,8 @@ Applied by `pulse/ingestion/ingest.py` before any further processing.
 | Duplicate row (same `platform` + `date` + `text`) | Second occurrence dropped |
 
 **Minimum viable dataset:** at least 5 rows must survive validation. If fewer remain, pipeline logs a warning and continues with a low-data flag set in the run summary.
+
+If zero rows remain, the pipeline stops before classification. `run_summary.json` records `validation_drop_reasons` and `rows_outside_window`, and the error message includes counts such as `invalid_platform=25` or `unparseable_date=24`.
 
 ---
 
@@ -107,7 +112,7 @@ Produced by `pulse/privacy/redact.py`. Extends the validated record; `title` and
 
 ### 3.3 Themed Review Record
 
-Produced by `pulse/analysis/cluster.py` (Mode B, default) or `pulse/analysis/classify.py` (Mode A). Extends the redacted record.
+Produced by `pulse/analysis/classify.py` in production or `pulse/analysis/cluster.py` when optional clustering is enabled. Extends the redacted record.
 
 ```python
 {
@@ -201,7 +206,7 @@ All eight predefined theme labels. The LLM must return exactly one of these stri
 
 Each LLM step sends a structured prompt and expects a strictly typed JSON response. The pipeline validates the response shape before use.
 
-> **Mode B note:** When `use_clustering: true` (the default), theme classification is handled by `pulse/analysis/cluster.py` via a plain-text call (`call_llm_text()`) — one call per cluster, returning a single theme label string. The JSON contract in §5.1 applies only to Mode A (`classify_reviews()` in `classify.py`).
+> **Mode B note:** When `use_clustering: true`, theme classification is handled by `pulse/analysis/cluster.py` via a plain-text call (`call_llm_text()`) — one call per cluster, returning a single theme label string. Production sets `use_clustering: false`, so the JSON contract in §5.1 is the active path.
 
 ### 5.1 Theme Classification Response (Mode A only)
 
@@ -270,10 +275,11 @@ Each LLM step sends a structured prompt and expects a strictly typed JSON respon
 ```
 
 **Validation rules:**
-- Array must contain exactly 3 elements
+- Array may contain up to the configured action count (normally 3)
 - `action` must be a non-empty string, max 200 characters
 - `linked_theme` must be one of the eight label strings exactly
 - Each `linked_theme` must correspond to one of the top 3 themes selected for this run
+- If no valid actions remain after retries and normalization, the note is still generated without an Action Ideas section
 
 ---
 
@@ -295,9 +301,9 @@ Applied to `title` and `text` fields before any LLM call or output write.
 
 ## 7. Output File Schemas
 
-### 7.1 Clean Reviews CSV
+### 7.1 Redacted Reviews CSV
 
-**Path:** `data/output/reviews_clean.csv`
+**Path:** `data/output/reviews_redacted.csv`
 **Written by:** `pulse/privacy/redact.py`
 
 | Column | Type | Notes |
@@ -353,7 +359,7 @@ Applied to `title` and `text` fields before any LLM call or output write.
 **Encoding:** UTF-8, plain text
 
 ```
-To: {email_recipient from config.yaml}
+To: {email_recipient from config/delivery.yaml}
 Subject: Weekly Review Pulse — Wealthsimple Canada
 
 Hi Team,
@@ -367,7 +373,7 @@ Here is this week's review pulse for Wealthsimple Canada.
 ---
 
 Thanks,
-{sender_name from config.yaml}
+{sender_name from config/delivery.yaml}
 ```
 
 ---
@@ -381,16 +387,18 @@ Produced at the end of each run. Written to `outputs/run_summary.json` for obser
   "run_id":              "run-20260607T100000Z-c4e82a",
   "input_hash":          "sha256:a3f9b1c2d4e5f6",
   "period_key":          "wealthsimple-2026-W23",
-  "delivery_key":        "wealthsimple-2026-W23-email",
+  "delivery_key":        "wealthsimple-2026-W23-email-send",
   "product":             "Wealthsimple Canada",
   "input_csv":           "data/input/reviews.csv",
-  "review_window_weeks": 10,
-  "window_start":        "2026-03-25",
-  "window_end":          "2026-06-07",
+  "review_window_weeks": 260,
   "reviews_ingested":    142,
   "reviews_after_dedup": 139,
-  "reviews_after_window_filter": 127,
   "rows_dropped_validation": 3,
+  "validation_drop_reasons": {
+    "invalid_platform": 1,
+    "unparseable_date": 2
+  },
+  "rows_outside_window": 0,
   "rows_with_pii":       4,
   "rows_excluded_post_redaction": 1,
   "themes_found":        5,
@@ -399,17 +407,18 @@ Produced at the end of each run. Written to `outputs/run_summary.json` for obser
   "note_word_count":     218,
   "note_truncated":      false,
   "model":               "llama-3.3-70b-versatile",
-  "llm_calls":           7,
   "output_paths": {
-    "clean_csv":    "data/output/reviews_clean.csv",
+    "clean_csv":    "data/output/reviews_redacted.csv",
     "weekly_note":  "outputs/weekly_note.md",
-    "email_draft":  "outputs/email_draft.txt"
+    "email_draft":  "outputs/email_draft.txt",
+    "run_summary":  "outputs/run_summary.json"
   },
   "delivery": {
-    "mode":       "local",
-    "doc_url":    null,
-    "draft_id":   null,
-    "message_id": null
+    "mode":       "mcp",
+    "email_mode": "send",
+    "doc_url":    "https://docs.google.com/document/d/...",
+    "message_id": "18f...",
+    "thread_id":  "18f..."
   },
   "started_at":          "2026-06-07T10:00:00Z",
   "completed_at":        "2026-06-07T10:03:42Z",
@@ -430,7 +439,7 @@ Raw CSV input           —                                data/input/reviews.cs
 ↓ ingest
 Validated records       list[ValidatedReview]            —
 ↓ redact
-Redacted records        list[RedactedReview]             data/output/reviews_clean.csv
+Redacted records        list[RedactedReview]             data/output/reviews_redacted.csv
 ↓ classify
 Themed records          list[ThemedReview]               —
 ↓ aggregate

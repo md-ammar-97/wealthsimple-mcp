@@ -491,7 +491,8 @@ The CSV drop zone on the Upload / Run page.
 │          ↑  Drop reviews.csv here                      │
 │             or click to browse                         │
 │                                                        │
-│   Required: platform, rating, title, text, date        │
+│   Required: platform, rating, text, date               │
+│   Optional: title                                      │
 │   Optional: app_version, country, helpful_votes        │
 │                                                        │
 └────────────────────────────────────────────────────────┘
@@ -799,10 +800,10 @@ The Next.js frontend communicates with the Python MCP pipeline via a thin API la
 | Route | Method | Purpose |
 |---|---|---|
 | `/api/upload` | `POST` | Accepts `multipart/form-data` with `reviews.csv`; saves to `data/input/` |
-| `/api/run` | `POST` | Triggers `python main.py`; returns `run_id` |
+| `/api/run` | `POST` | Triggers `python3 -m pulse.cli run --skip-delivery`; returns `run_id` |
 | `/api/pipeline/status` | `GET` (SSE) | Server-sent events; emits step state updates in real time |
 | `/api/results` | `GET` | Returns `run_summary.json` + parsed `weekly_note.md` + `email_draft.txt` |
-| `/api/results/csv` | `GET` | Streams `data/output/reviews_clean.csv` for download |
+| `/api/results/csv` | `GET` | Legacy route that streams `data/output/reviews_clean.csv` |
 
 ```ts
 // src/types/pipeline.ts

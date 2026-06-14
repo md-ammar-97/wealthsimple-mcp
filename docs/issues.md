@@ -27,13 +27,13 @@ Consolidated tracker for all production bugs and fixes. Each issue includes root
 
 ## ISSUE-002 — CSV upload shows 503 loop ("Results timed out")
 
-**Status:** PARTIALLY FIXED; persistent 503 fix in progress (this session)  
+**Status:** FIXED (2026-06-14)
 **Symptom:** After uploading a CSV, pipeline appears to complete but `GET /api/results` returns 503 on every retry (5 original retries, 12 after fix). Ends with "Results timed out" error.
 
 ### Root Cause Analysis
 
-**A — `run_summary.json` not overwritten (CURRENT OPEN ISSUE)**  
-Node.js pre-writes `run_summary.json` with `status: 'running'` before spawning Python. When Python exits code 0, `child.on('close')` immediately pushes `{ completed: true }` to the SSE queue WITHOUT verifying the file was updated. The browser calls `fetchResults()` and reads the stale placeholder. Root environmental cause on Render is unknown without logs; may be filesystem sync, path difference, or a Python crash that exits 0 early.
+**A — `run_summary.json` not overwritten (FIXED by ISSUE-007)**
+Node.js pre-writes `run_summary.json` with `status: 'running'` before spawning Python. When Python exited code 0, `child.on('close')` immediately pushed `{ completed: true }` without verifying the file was updated, so the browser read the stale placeholder. The later diagnostic exposed the missing `python -m pulse.cli` entry point documented in ISSUE-007.
 
 **Fix:** Server-side verification loop — poll `run_summary.json` for up to 10 seconds after Python exits code 0 before pushing `{ completed: true }` to the SSE queue.
 
@@ -114,11 +114,11 @@ env: { ...process.env, PYTHONUNBUFFERED: '1' }
 
 ## ISSUE-006 — Persistent 503: server verifies file before signalling browser
 
-**Status:** IN PROGRESS (this session)  
+**Status:** FIXED (2026-06-14; root cause documented in ISSUE-007)
 **Symptom:** Even after fixes B–E (ISSUE-002), the 503 loop persists. All 12 retries fail. `run_summary.json` still says `status: 'running'` when `fetchResults()` reads it.
 
 ### Root Cause
-Unknown without Render logs. The `child.on('close', code === 0)` handler pushes `{ completed: true }` immediately after Python exits, without confirming the file was written. On Render, the file may not be readable immediately after Python's exit (filesystem sync, path difference, or a Python crash that exits 0 early without calling `write_run_summary`).
+The server-side verification correctly proved that Python exited 0 without updating the summary. ISSUE-007 identified the underlying cause: `python3 -m pulse.cli` imported the module but did not invoke the Click entry point.
 
 **Confirmed non-causes:**
 - `use_clustering: false` is already set — no PyTorch/OOM risk
@@ -167,9 +167,7 @@ Running the module therefore imported the CLI definitions, performed no pipeline
 
 ## Open Investigation Items
 
-| Item | Where to look |
-|---|---|
-| Whether GROQ_API_KEY is set and Groq calls succeed | Render logs: Python stderr during step 3 (classify) |
+No active production bug from this issue set remains open. Future LLM failures should be diagnosed from the structured stage logs and `run_summary.json`.
 
 ---
 

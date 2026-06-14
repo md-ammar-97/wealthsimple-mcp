@@ -28,7 +28,7 @@ CD:          git push main → Cloud Build → Cloud Run (automatic)
 
 | Secret name | Contents |
 |---|---|
-| `google-mcp-credentials` | Service account key JSON |
+| `google-mcp-credentials` | OAuth 2.0 client credentials JSON |
 | `google-mcp-token` | OAuth2 token JSON |
 | `google-mcp-api-key` | API key (must match `MCP_API_KEY` in GitHub/Render) |
 
@@ -119,6 +119,28 @@ If you upgrade to a paid Render instance (1 GB+), you can re-enable clustering b
 | `/upload` | Upload any app's CSV → email + app name → 8-step SSE progress → inline results + email sent |
 | `/analytics` | Wealthsimple historical analytics: Recharts charts + run history table from `ledger.json` |
 
+### Browser upload execution
+
+The `/api/run` route launches:
+
+```text
+python3 -m pulse.cli run
+  --input <absolute data/input/reviews.csv>
+  --output-dir <absolute outputs>
+  --run-id <uuid>
+  --skip-delivery
+```
+
+`--skip-delivery` prevents the pipeline from also sending to the configured weekly recipient or appending the shared Google Doc. After `run_summary.json` reaches `success`, the route calls `POST /send_email` once using the uploader's submitted address.
+
+The route waits up to 10 seconds after process exit for `run_summary.json` to leave `running`. An exit code of 0 is not treated as success unless the summary also reports `success`.
+
+### CSV validation
+
+Required headers are `platform`, `rating`, `text`, and `date`; `title` is optional. Accepted platform aliases cover App Store/iOS/Apple and Google Play/Android. Accepted dates include ISO dates/timestamps, `YYYY/MM/DD`, `DD/MM/YYYY`, and `MM/DD/YYYY`.
+
+Validation failures are recorded in `validation_drop_reasons`. If no valid reviews remain, the API returns the pipeline diagnostic instead of continuing to theme classification.
+
 ### Re-deploy
 
 Auto-deploys on every push to `main`. To manually re-deploy: Render dashboard → Manual Deploy.
@@ -156,15 +178,19 @@ This means the analytics page has persistent historical data even across Render 
 ## Troubleshooting
 
 ### Pipeline stuck at "running" in browser
-The SSE stream polls `global.pipelineQueue` every 500ms. If the browser shows a stuck progress bar:
+The SSE stream polls `global.pipelineQueue` every 500ms. The run route now verifies the final summary state before signalling completion. If the browser still shows a stuck progress bar:
 - Check Render logs for `[pipeline close]` or `[pipeline spawn error]`
 - The queue-based event drain means multi-line Python stdout chunks are split and each line parsed independently — this is the fixed version
+- Inspect `outputs/run_summary.json`; `status: error` should include the upstream validation or analysis failure
 
 ### Results not found
-If the pipeline was OOM-killed (exit code 137 = SIGKILL), Python's `except` block never ran and `run_summary.json` stayed in `status: running`. A placeholder `run_summary.json` is written before spawning the subprocess, so this should now return a 503 "still running" instead of a 404.
+If the pipeline is OOM-killed (exit code 137 = SIGKILL), Python's exception handler cannot update the summary. A placeholder is written before spawning, and the run route now reports that the summary remained `running` instead of presenting a false success.
 
 ### MCP email not sent (CSV upload flow)
 The `/api/run` route calls `POST /send_email` on the MCP server after `pulse run --skip-delivery` exits with code 0. Failure is non-fatal. Check:
 1. `MCP_API_KEY` is set in Render env
 2. `APPROVAL_MODE=auto` is set on the Cloud Run service
 3. Render logs for `[pipeline close] code: 0`
+4. Cloud Run is serving a revision that exposes `POST /send_email`
+
+`APPROVAL_MODE=auto` approves the endpoint action. Calling `/create_email_draft` still creates only a draft; successful delivery requires `/send_email`.
