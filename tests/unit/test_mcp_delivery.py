@@ -10,7 +10,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from pulse.delivery.docs_mcp import append_doc_section
-from pulse.delivery.gmail_mcp import create_gmail_draft
+from pulse.delivery.gmail_mcp import deliver_gmail_email
 
 
 # ---------------------------------------------------------------------------
@@ -28,10 +28,11 @@ def _run_data(period_key: str = "wealthsimple-2026-W23") -> dict:
 
 
 def _config(docs_enabled: bool = True, gmail_enabled: bool = True,
-            doc_id: str = "abc123", email_recipient: str = "test@example.com") -> SimpleNamespace:
+            doc_id: str = "abc123", email_recipient: str = "test@example.com",
+            email_mode: str = "draft") -> SimpleNamespace:
     return SimpleNamespace(
         docs_mcp={"enabled": docs_enabled, "doc_id": doc_id},
-        gmail_mcp={"enabled": gmail_enabled, "email_mode": "draft"},
+        gmail_mcp={"enabled": gmail_enabled, "email_mode": email_mode},
         mcp_server_url="http://localhost:8000",
         email_recipient=email_recipient,
     )
@@ -126,19 +127,19 @@ class TestAppendDocSection:
 # gmail_mcp tests
 # ---------------------------------------------------------------------------
 
-class TestCreateGmailDraft:
+class TestDeliverGmailEmail:
     def test_skips_when_disabled(self):
         run_data = _run_data()
         cfg = _config(gmail_enabled=False)
         with patch("urllib.request.urlopen") as mock_open:
-            create_gmail_draft("email body", run_data, cfg, run_id="test")
+            deliver_gmail_email("email body", run_data, cfg, run_id="test")
         mock_open.assert_not_called()
 
     def test_skips_when_no_recipient(self):
         run_data = _run_data()
         cfg = _config(email_recipient="")
         with patch("urllib.request.urlopen") as mock_open:
-            create_gmail_draft("email body", run_data, cfg, run_id="test")
+            deliver_gmail_email("email body", run_data, cfg, run_id="test")
         mock_open.assert_not_called()
 
     def test_skips_when_already_delivered(self):
@@ -146,7 +147,7 @@ class TestCreateGmailDraft:
         cfg = _config()
         with patch("pulse.delivery.gmail_mcp.check_delivery_guard", return_value=True):
             with patch("urllib.request.urlopen") as mock_open:
-                create_gmail_draft("email body", run_data, cfg, run_id="test")
+                deliver_gmail_email("email body", run_data, cfg, run_id="test")
         mock_open.assert_not_called()
 
     def test_force_overrides_idempotency(self):
@@ -155,7 +156,7 @@ class TestCreateGmailDraft:
         mock_resp = _mock_urlopen(body={"status": "ok", "draft_id": "draft_xyz"})
         with patch("pulse.delivery.gmail_mcp.check_delivery_guard", return_value=True):
             with patch("urllib.request.urlopen", return_value=mock_resp):
-                create_gmail_draft("email body", run_data, cfg, run_id="test", force=True)
+                deliver_gmail_email("email body", run_data, cfg, run_id="test", force=True)
         assert run_data["delivery"]["draft_id"] == "draft_xyz"
 
     def test_successful_delivery_updates_run_data(self):
@@ -164,7 +165,7 @@ class TestCreateGmailDraft:
         mock_resp = _mock_urlopen(body={"status": "ok", "draft_id": "draft_abc"})
         with patch("pulse.delivery.gmail_mcp.check_delivery_guard", return_value=False):
             with patch("urllib.request.urlopen", return_value=mock_resp):
-                create_gmail_draft("email body", run_data, cfg, run_id="test")
+                deliver_gmail_email("email body", run_data, cfg, run_id="test")
         assert run_data["delivery"]["draft_id"] == "draft_abc"
 
     def test_payload_includes_correct_fields(self):
@@ -177,10 +178,42 @@ class TestCreateGmailDraft:
             return mock_resp
         with patch("pulse.delivery.gmail_mcp.check_delivery_guard", return_value=False):
             with patch("urllib.request.urlopen", side_effect=fake_urlopen):
-                create_gmail_draft("Dear team...", run_data, cfg, run_id="test")
+                deliver_gmail_email("Dear team...", run_data, cfg, run_id="test")
         assert captured["body"]["to"] == "test@example.com"
         assert "wealthsimple-2026-W23" in captured["body"]["subject"]
         assert captured["body"]["body"] == "Dear team..."
+
+    def test_send_mode_calls_send_endpoint_and_records_message_id(self):
+        run_data = _run_data()
+        cfg = _config(email_mode="send")
+        mock_resp = _mock_urlopen(
+            body={
+                "status": "ok",
+                "message_id": "message_abc",
+                "thread_id": "thread_abc",
+            }
+        )
+        captured = {}
+
+        def fake_urlopen(req, timeout=None):
+            captured["url"] = req.full_url
+            return mock_resp
+
+        with patch("pulse.delivery.gmail_mcp.check_delivery_guard", return_value=False):
+            with patch("urllib.request.urlopen", side_effect=fake_urlopen):
+                deliver_gmail_email("email body", run_data, cfg, run_id="test")
+
+        assert captured["url"] == "http://localhost:8000/send_email"
+        assert run_data["delivery"]["email_mode"] == "send"
+        assert run_data["delivery"]["message_id"] == "message_abc"
+        assert run_data["delivery"]["thread_id"] == "thread_abc"
+
+    def test_rejects_unknown_email_mode(self):
+        run_data = _run_data()
+        cfg = _config(email_mode="unknown")
+
+        with pytest.raises(ValueError, match="Unsupported gmail_mcp.email_mode"):
+            deliver_gmail_email("email body", run_data, cfg, run_id="test")
 
     def test_403_does_not_raise(self):
         run_data = _run_data()
@@ -188,7 +221,7 @@ class TestCreateGmailDraft:
         exc = urllib.error.HTTPError("url", 403, "Forbidden", {}, BytesIO(b'{"detail":"rejected"}'))
         with patch("pulse.delivery.gmail_mcp.check_delivery_guard", return_value=False):
             with patch("urllib.request.urlopen", side_effect=exc):
-                create_gmail_draft("email", run_data, cfg, run_id="test")  # must not raise
+                deliver_gmail_email("email", run_data, cfg, run_id="test")  # must not raise
         assert "draft_id" not in run_data["delivery"]
 
     def test_server_unreachable_raises_runtime_error(self):
@@ -198,4 +231,4 @@ class TestCreateGmailDraft:
         with patch("pulse.delivery.gmail_mcp.check_delivery_guard", return_value=False):
             with patch("urllib.request.urlopen", side_effect=exc):
                 with pytest.raises(RuntimeError, match="google-mcp-server not reachable"):
-                    create_gmail_draft("email", run_data, cfg, run_id="test")
+                    deliver_gmail_email("email", run_data, cfg, run_id="test")

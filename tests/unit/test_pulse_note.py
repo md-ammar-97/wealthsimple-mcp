@@ -196,21 +196,25 @@ def test_ec32_markdown_in_quote_escaped(mocker):
 
 
 # ---------------------------------------------------------------------------
-# EC-33: Empty action_records → MissingUpstreamFieldError before note write
+# EC-33: Empty action_records continues without an Actions section
 # ---------------------------------------------------------------------------
 
-def test_ec33_missing_actions_raises(mocker):
-    """Empty action list → MissingUpstreamFieldError; no LLM call made."""
-    llm_mock = mocker.patch("pulse.render.pulse_note.call_llm_text")
+def test_ec33_missing_actions_omits_actions_section(mocker):
+    """Empty action list is non-fatal and produces a note without actions."""
+    llm_mock = mocker.patch(
+        "pulse.render.pulse_note.call_llm_text",
+        side_effect=lambda draft, system_prompt, config: draft,
+    )
 
     themes = [make_ranked_theme("Account access & login")]
     quotes = [make_quote("Account access & login")]
     actions: list = []  # simulates failed action generation
 
-    with pytest.raises(MissingUpstreamFieldError):
-        generate_pulse_note(themes, quotes, actions, make_review(10), CONFIG)
+    result = generate_pulse_note(themes, quotes, actions, make_review(10), CONFIG)
 
-    llm_mock.assert_not_called()
+    assert result["actions"] == []
+    assert "## Action Ideas" not in result["note_text"]
+    llm_mock.assert_called_once()
 
 
 # ---------------------------------------------------------------------------

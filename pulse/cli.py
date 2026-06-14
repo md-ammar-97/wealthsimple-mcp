@@ -28,9 +28,17 @@ def main() -> None:
 @click.option("--run-id", default=None, help="Override auto-minted run ID")
 @click.option("--force", is_flag=True, default=False,
               help="Skip idempotency guard and re-deliver even if week already processed")
+@click.option("--skip-delivery", is_flag=True, default=False,
+              help="Generate artifacts without Google Docs or Gmail delivery")
 @click.option("--output-dir", default="outputs", show_default=True,
               help="Directory for weekly_note.md, email_draft.txt, run_summary.json")
-def run(input_csv: str, run_id: str | None, force: bool, output_dir: str) -> None:
+def run(
+    input_csv: str,
+    run_id: str | None,
+    force: bool,
+    skip_delivery: bool,
+    output_dir: str,
+) -> None:
     """Run the full pipeline (ingest -> classify -> note -> email -> ledger)."""
     config = load_config()
     try:
@@ -38,6 +46,7 @@ def run(input_csv: str, run_id: str | None, force: bool, output_dir: str) -> Non
             config, input_csv,
             dry_run=False, force=force,
             output_dir=output_dir, run_id=run_id,
+            skip_delivery=skip_delivery,
         )
         click.echo(f"Run complete: {result['run_id']}  status={result['status']}")
     except SystemExit:

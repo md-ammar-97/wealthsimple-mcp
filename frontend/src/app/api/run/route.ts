@@ -49,13 +49,17 @@ async function sendEmailViaMcp(email: string, appName: string): Promise<void> {
   const subject = `Review Pulse Report — ${appName}`;
 
   try {
-    await fetch(`${MCP_SERVER_URL}/create_email_draft`, {
+    const response = await fetch(`${MCP_SERVER_URL}/send_email`, {
       method: 'POST',
       headers,
       body: JSON.stringify({ to: email, subject, body }),
       signal: AbortSignal.timeout(20_000),
     });
-  } catch {
+    if (!response.ok) {
+      console.error('[email delivery] MCP send failed:', response.status, await response.text());
+    }
+  } catch (error) {
+    console.error('[email delivery] MCP send request failed:', error);
     // non-fatal — email delivery failure does not break results
   }
 }
@@ -84,6 +88,7 @@ export async function POST() {
     '--input', INPUT_CSV,
     '--output-dir', OUTPUTS_DIR,
     '--run-id', runId,
+    '--skip-delivery',
   ], {
     cwd: PROJECT_ROOT,
     env: { ...process.env, PYTHONUNBUFFERED: '1' },

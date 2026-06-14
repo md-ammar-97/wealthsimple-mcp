@@ -30,9 +30,10 @@ def build_period_key(run_date: datetime) -> str:
     return f"wealthsimple-{iso_year}-W{week:02d}"
 
 
-def build_delivery_key(period_key: str) -> str:
+def build_delivery_key(period_key: str, email_mode: str | None = None) -> str:
     """Delivery idempotency key for email delivery."""
-    return f"{period_key}-email"
+    suffix = f"-{email_mode}" if email_mode else ""
+    return f"{period_key}-email{suffix}"
 
 
 def write_run_summary(

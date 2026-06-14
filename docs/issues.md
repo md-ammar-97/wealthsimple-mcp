@@ -202,3 +202,29 @@ timestamps, and US-style slash dates were rejected.
 **Files:** `pulse/ingestion/validators.py`, `pulse/ingestion/ingest.py`,
 `pulse/orchestrator.py`, `frontend/src/app/upload/page.tsx`,
 `frontend/src/components/UploadZone/UploadZone.tsx`, `tests/unit/test_ingest.py`
+
+---
+
+## ISSUE-009 - Successful report creates a Gmail draft but sends no email
+
+**Status:** FIXED (2026-06-14)
+**Symptom:** Pipeline and report generation succeeded, and Gmail contained the report in Drafts, but
+the recipient never received a message.
+
+### Root Cause
+The configured `email_mode` was `draft`, the delivery client always called
+`POST /create_email_draft`, and google-mcp-server did not expose a send endpoint.
+`APPROVAL_MODE=auto` approved draft creation only; it did not send the draft.
+
+### Fix Applied
+- Added `POST /send_email` backed by Gmail `users.messages.send`
+- Made the pipeline honor `gmail_mcp.email_mode`
+- Set production delivery to `email_mode: send`
+- Added mode-specific delivery keys so a prior draft does not suppress a send
+- Changed CSV uploads to send to the uploader and skip the pipeline's configured delivery,
+  preventing duplicate messages
+
+**Files:** `pulse/delivery/gmail_mcp.py`, `pulse/orchestrator.py`, `pulse/cli.py`,
+`pulse/ledger/run_ledger.py`, `config/delivery.yaml`,
+`frontend/src/app/api/run/route.ts`, `tests/unit/test_mcp_delivery.py`,
+`tests/unit/test_ledger.py`, `tests/unit/test_cli.py`

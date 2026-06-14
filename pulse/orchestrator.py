@@ -14,7 +14,7 @@ from pulse.analysis.cluster import classify_with_clustering
 from pulse.analysis.embed import embed_reviews
 from pulse.analysis.quote_select import select_quotes
 from pulse.delivery.docs_mcp import append_doc_section
-from pulse.delivery.gmail_mcp import create_gmail_draft
+from pulse.delivery.gmail_mcp import deliver_gmail_email
 from pulse.delivery.local import write_artifact
 from pulse.ingestion.ingest import load_reviews
 from pulse.ledger.run_ledger import (
@@ -40,6 +40,7 @@ def run_pipeline(
     output_dir: str = "outputs",
     run_id: str | None = None,
     clean_csv_dir: str = "data/output",
+    skip_delivery: bool = False,
 ) -> dict:
     """
     Execute the full review-pulse pipeline.
@@ -53,6 +54,7 @@ def run_pipeline(
     output_dir   : Directory for weekly_note.md, email_draft.txt, run_summary.json
     run_id       : Override the minted run ID (useful for tests / reruns)
     clean_csv_dir: Directory for reviews_clean.csv (separate from output_dir)
+    skip_delivery: Generate local artifacts without Google Docs or Gmail delivery
     """
     # ── IDs ──────────────────────────────────────────────────────────────────
     if run_id is None:
@@ -66,7 +68,9 @@ def run_pipeline(
 
     run_date = datetime.now(timezone.utc)
     period_key = build_period_key(run_date)
-    delivery_key = build_delivery_key(period_key)
+    gmail_cfg = getattr(config, "gmail_mcp", {}) or {}
+    email_mode = str(gmail_cfg.get("email_mode", "draft")).strip().lower()
+    delivery_key = build_delivery_key(period_key, email_mode)
     started_at = run_date.isoformat()
 
     run_data: dict = {
@@ -220,23 +224,27 @@ def run_pipeline(
 
         # Step 10 — Optional MCP delivery via google-mcp-server
         # Delivery failures are non-fatal: logged and added to errors, pipeline stays "success"
-        try:
-            append_doc_section(
-                note_result["note_text"], run_data, config,
-                run_id=run_id, force=force,
-            )
-        except Exception as delivery_exc:
-            log(run_id, "delivery", "docs_mcp_error", error=str(delivery_exc))
-            run_data["errors"].append(f"docs_delivery: {delivery_exc}")
+        if skip_delivery:
+            run_data["delivery"]["skipped"] = True
+            log(run_id, "delivery", "delivery_skipped")
+        else:
+            try:
+                append_doc_section(
+                    note_result["note_text"], run_data, config,
+                    run_id=run_id, force=force,
+                )
+            except Exception as delivery_exc:
+                log(run_id, "delivery", "docs_mcp_error", error=str(delivery_exc))
+                run_data["errors"].append(f"docs_delivery: {delivery_exc}")
 
-        try:
-            create_gmail_draft(
-                email_text, run_data, config,
-                run_id=run_id, force=force,
-            )
-        except Exception as delivery_exc:
-            log(run_id, "delivery", "gmail_mcp_error", error=str(delivery_exc))
-            run_data["errors"].append(f"gmail_delivery: {delivery_exc}")
+            try:
+                deliver_gmail_email(
+                    email_text, run_data, config,
+                    run_id=run_id, force=force,
+                )
+            except Exception as delivery_exc:
+                log(run_id, "delivery", "gmail_mcp_error", error=str(delivery_exc))
+                run_data["errors"].append(f"gmail_delivery: {delivery_exc}")
 
         # Surface delivery errors in CI logs (errors array is written to artifact only)
         if run_data.get("errors"):

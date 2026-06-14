@@ -14,4 +14,4 @@ docs_mcp:
 
 gmail_mcp:
   enabled: true
-  email_mode: draft   # draft | send
+  email_mode: send   # draft | send

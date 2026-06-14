@@ -96,6 +96,11 @@ def test_build_delivery_key():
     assert key == "wealthsimple-2026-W24-email"
 
 
+def test_build_delivery_key_includes_email_mode():
+    key = build_delivery_key("wealthsimple-2026-W24", "send")
+    assert key == "wealthsimple-2026-W24-email-send"
+
+
 # ---------------------------------------------------------------------------
 # write_run_summary / read_run_summary
 # ---------------------------------------------------------------------------

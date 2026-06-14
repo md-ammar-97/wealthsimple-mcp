@@ -6,7 +6,7 @@ Full deployment reference for all components.
 
 ## Component 1 — google-mcp-server (Cloud Run) ✅ LIVE
 
-Handles Google Workspace delivery (Doc append + Gmail draft). Already deployed.
+Handles Google Workspace delivery (Doc append + Gmail draft/send). Already deployed.
 
 ```
 Service:     mcp-server-google
@@ -37,7 +37,8 @@ CD:          git push main → Cloud Build → Cloud Run (automatic)
 | Endpoint | Body | Purpose |
 |---|---|---|
 | `POST /append_to_doc` | `{ doc_id, content }` | Append weekly note section to Google Doc |
-| `POST /create_email_draft` | `{ to, subject, body }` | Create Gmail draft (or send to CSV uploader) |
+| `POST /create_email_draft` | `{ to, subject, body }` | Create a Gmail draft |
+| `POST /send_email` | `{ to, subject, body }` | Send a Gmail message |
 
 Full runbook: `../google-mcp-server/deployment_plan.md`
 
@@ -163,7 +164,7 @@ The SSE stream polls `global.pipelineQueue` every 500ms. If the browser shows a 
 If the pipeline was OOM-killed (exit code 137 = SIGKILL), Python's `except` block never ran and `run_summary.json` stayed in `status: running`. A placeholder `run_summary.json` is written before spawning the subprocess, so this should now return a 503 "still running" instead of a 404.
 
 ### MCP email not sent (CSV upload flow)
-The `/api/run` route calls `POST /create_email_draft` on the MCP server after `pulse run` exits with code 0. Failure is non-fatal. Check:
+The `/api/run` route calls `POST /send_email` on the MCP server after `pulse run --skip-delivery` exits with code 0. Failure is non-fatal. Check:
 1. `MCP_API_KEY` is set in Render env
 2. `APPROVAL_MODE=auto` is set on the Cloud Run service
 3. Render logs for `[pipeline close] code: 0`
