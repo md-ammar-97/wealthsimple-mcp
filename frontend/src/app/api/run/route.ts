@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { spawn } from 'child_process';
+import { mkdir, writeFile } from 'fs/promises';
 import path from 'path';
 import { randomUUID } from 'crypto';
 
@@ -34,6 +35,13 @@ export async function POST() {
   activeRunId = runId;
 
   global.pipelineRun = { runId, stage: '', event: 'started', completed: false };
+
+  const OUTPUTS_DIR = path.resolve(PROJECT_ROOT, 'outputs');
+  await mkdir(OUTPUTS_DIR, { recursive: true });
+  await writeFile(
+    path.join(OUTPUTS_DIR, 'run_summary.json'),
+    JSON.stringify({ run_id: runId, status: 'running', started_at: new Date().toISOString() }),
+  );
 
   const child = spawn(PYTHON_BIN, ['-m', 'pulse.cli', 'run', '--input', 'data/input/reviews.csv'], {
     cwd: PROJECT_ROOT,

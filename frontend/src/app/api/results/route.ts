@@ -17,6 +17,14 @@ export async function GET() {
 
     const summary = JSON.parse(summaryRaw);
 
+    if (summary.status === 'running') {
+      return NextResponse.json({ error: 'Pipeline is still running — please wait' }, { status: 202 });
+    }
+    if (summary.status === 'error') {
+      const msg = (summary.errors as string[] | undefined)?.[0] ?? 'Pipeline failed';
+      return NextResponse.json({ error: msg }, { status: 500 });
+    }
+
     return NextResponse.json({
       runId:          summary.run_id ?? summary.runId ?? 'unknown',
       periodStart:    summary.period_start ?? '',
