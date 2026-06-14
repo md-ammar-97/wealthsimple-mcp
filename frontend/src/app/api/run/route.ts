@@ -27,6 +27,8 @@ declare global {
   // eslint-disable-next-line no-var
   var pipelineRun: RunState | undefined;
   // eslint-disable-next-line no-var
+  var pipelineQueue: RunState[];
+  // eslint-disable-next-line no-var
   var csvMeta: { email: string; appName: string } | undefined;
 }
 
@@ -67,6 +69,7 @@ export async function POST() {
   activeRunId = runId;
 
   global.pipelineRun = { runId, stage: '', event: 'started', completed: false };
+  global.pipelineQueue = [];
 
   const OUTPUTS_DIR = path.resolve(PROJECT_ROOT, 'outputs');
   await mkdir(OUTPUTS_DIR, { recursive: true });
@@ -81,13 +84,17 @@ export async function POST() {
   });
 
   child.stdout.on('data', (chunk: Buffer) => {
-    const line = chunk.toString().trim();
-    if (!line) return;
-    try {
-      const parsed = JSON.parse(line);
-      global.pipelineRun = { runId, ...parsed, completed: false };
-    } catch {
-      // plain text line — ignore
+    for (const raw of chunk.toString().split('\n')) {
+      const line = raw.trim();
+      if (!line) continue;
+      try {
+        const parsed = JSON.parse(line);
+        const state: RunState = { runId, ...parsed, completed: false };
+        global.pipelineRun = state;
+        global.pipelineQueue.push(state);
+      } catch {
+        // non-JSON stdout line — ignore
+      }
     }
   });
 
@@ -111,7 +118,9 @@ export async function POST() {
     activeRunId = null;
     console.log('[pipeline close] code:', code, 'stderr:', stderrBuf.slice(0, 500));
     if (code === 0) {
-      global.pipelineRun = { runId, stage: 'done', event: 'done', completed: true };
+      const doneState: RunState = { runId, stage: 'done', event: 'done', completed: true };
+      global.pipelineRun = doneState;
+      global.pipelineQueue.push(doneState);
 
       // Send email to the CSV uploader if metadata was captured
       const meta = global.csvMeta;
