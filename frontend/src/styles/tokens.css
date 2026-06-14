@@ -1,161 +1,146 @@
 /* ============================================================
-   Design tokens — M3 colour, type, shape, motion, spacing
-   Source colour: #00C086 (Wealthsimple brand green)
+   Atlassian Design System tokens
+   https://atlassian.design/foundations/color
    ============================================================ */
 
 :root {
-  /* ── Primary ─────────────────────────────────────── */
-  --md-sys-color-primary:                  #006B4B;
-  --md-sys-color-on-primary:               #FFFFFF;
-  --md-sys-color-primary-container:        #7DF8C3;
-  --md-sys-color-on-primary-container:     #00210F;
+  /* ── Blue palette ────────────────────────────────── */
+  --atlas-blue-50:  #E8F0FE;
+  --atlas-blue-100: #DEEBFF;
+  --atlas-blue-200: #B3D4FF;
+  --atlas-blue-300: #4C9AFF;
+  --atlas-blue-400: #2684FF;
+  --atlas-blue-500: #0052CC;
+  --atlas-blue-600: #0747A6;
+  --atlas-blue-700: #042975;
 
-  /* ── Secondary ───────────────────────────────────── */
-  --md-sys-color-secondary:                #4D6359;
-  --md-sys-color-on-secondary:             #FFFFFF;
-  --md-sys-color-secondary-container:      #CFE9DC;
-  --md-sys-color-on-secondary-container:   #0A1F17;
+  /* ── Neutral palette ─────────────────────────────── */
+  --atlas-n0:   #FFFFFF;
+  --atlas-n10:  #F4F5F7;
+  --atlas-n20:  #EBECF0;
+  --atlas-n30:  #DFE1E6;
+  --atlas-n40:  #C1C7D0;
+  --atlas-n70:  #97A0AF;
+  --atlas-n100: #6B778C;
+  --atlas-n200: #5E6C84;
+  --atlas-n300: #505F79;
+  --atlas-n400: #42526E;
+  --atlas-n500: #344563;
+  --atlas-n600: #253858;
+  --atlas-n700: #172B4D;
+  --atlas-n800: #091E42;
 
-  /* ── Tertiary ────────────────────────────────────── */
-  --md-sys-color-tertiary:                 #3E6374;
-  --md-sys-color-on-tertiary:              #FFFFFF;
-  --md-sys-color-tertiary-container:       #C2E8FC;
-  --md-sys-color-on-tertiary-container:    #001F2B;
+  /* ── Green ───────────────────────────────────────── */
+  --atlas-green-100: #E3FCEF;
+  --atlas-green-300: #57D9A3;
+  --atlas-green-400: #36B37E;
+  --atlas-green-500: #00875A;
 
-  /* ── Error ───────────────────────────────────────── */
-  --md-sys-color-error:                    #BA1A1A;
-  --md-sys-color-on-error:                 #FFFFFF;
-  --md-sys-color-error-container:          #FFDAD6;
-  --md-sys-color-on-error-container:       #410002;
+  /* ── Red ─────────────────────────────────────────── */
+  --atlas-red-100: #FFEBE6;
+  --atlas-red-300: #FF8F73;
+  --atlas-red-400: #FF5630;
+  --atlas-red-500: #DE350B;
 
-  /* ── Surface ─────────────────────────────────────── */
-  --md-sys-color-surface:                  #F5FBF6;
-  --md-sys-color-on-surface:               #171D1A;
-  --md-sys-color-surface-variant:          #DBE5DE;
-  --md-sys-color-on-surface-variant:       #404944;
-  --md-sys-color-surface-container-lowest: #FFFFFF;
-  --md-sys-color-surface-container-low:    #EFF5F0;
-  --md-sys-color-surface-container:        #E9EFEb;
-  --md-sys-color-surface-container-high:   #E4EAE5;
-  --md-sys-color-surface-container-highest:#DEE4DF;
+  /* ── Yellow ──────────────────────────────────────── */
+  --atlas-yellow-100: #FFFAE6;
+  --atlas-yellow-400: #FFC400;
+  --atlas-yellow-500: #FF991F;
 
-  /* ── Outline ─────────────────────────────────────── */
-  --md-sys-color-outline:                  #707974;
-  --md-sys-color-outline-variant:          #BFC9C2;
+  /* ── Purple ──────────────────────────────────────── */
+  --atlas-purple-100: #EAE6FF;
+  --atlas-purple-400: #6554C0;
 
-  /* ── Inverse ─────────────────────────────────────── */
-  --md-sys-color-inverse-surface:          #2B322E;
-  --md-sys-color-inverse-on-surface:       #ECF2ED;
-  --md-sys-color-inverse-primary:          #60DB9E;
+  /* ── Teal ────────────────────────────────────────── */
+  --atlas-teal-100: #E6FCFF;
+  --atlas-teal-400: #00B8D9;
 
-  /* ── Theme category colours ──────────────────────── */
-  --color-theme-account:    #006B4B;
-  --color-theme-transact:   #3E6374;
-  --color-theme-technical:  #B85C00;
-  --color-theme-support:    #7A1A8E;
-  --color-theme-business:   #8B5000;
-  --color-theme-compliance: #005FAF;
+  /* ── Semantic: backgrounds ───────────────────────── */
+  --color-bg-page:    var(--atlas-n10);
+  --color-bg-card:    var(--atlas-n0);
+  --color-bg-hover:   var(--atlas-n20);
+  --color-bg-selected: var(--atlas-blue-50);
 
-  /* ── Rating dot colours ──────────────────────────── */
-  --color-rating-1: #BA1A1A;
-  --color-rating-2: #D4690A;
-  --color-rating-3: #857400;
-  --color-rating-4: #3C6A00;
-  --color-rating-5: #006B4B;
+  /* ── Semantic: text ──────────────────────────────── */
+  --color-text-heading:  var(--atlas-n700);
+  --color-text-body:     var(--atlas-n500);
+  --color-text-subtle:   var(--atlas-n100);
+  --color-text-disabled: var(--atlas-n70);
+  --color-text-link:      var(--atlas-blue-500);
+  --color-text-inverse:   var(--atlas-n0);
+  --color-text-secondary: var(--atlas-n200);
 
-  /* ── Elevation (tonal) ───────────────────────────── */
-  --md-sys-elevation-0: var(--md-sys-color-surface-container-lowest);
-  --md-sys-elevation-1: var(--md-sys-color-surface-container-low);
-  --md-sys-elevation-2: var(--md-sys-color-surface-container);
-  --md-sys-elevation-3: var(--md-sys-color-surface-container-high);
-  --md-sys-elevation-4: var(--md-sys-color-surface-container-highest);
+  /* ── Semantic: borders ───────────────────────────── */
+  --color-border:       var(--atlas-n30);
+  --color-border-input: var(--atlas-n40);
+  --color-border-focus: var(--atlas-blue-400);
 
-  /* ── Shadows (modals + FAB only) ─────────────────── */
-  --shadow-1: 0 1px 2px rgba(0,0,0,.08);
-  --shadow-2: 0 2px 6px rgba(0,0,0,.10);
-  --shadow-3: 0 4px 12px rgba(0,0,0,.12);
+  /* ── Semantic: primary action ────────────────────── */
+  --color-primary:       var(--atlas-blue-500);
+  --color-primary-hover: var(--atlas-blue-600);
+  --color-primary-text:  var(--atlas-n0);
 
-  /* ── Shape (corner radii) ────────────────────────── */
-  --md-sys-shape-corner-none:         0px;
-  --md-sys-shape-corner-extra-small:  4px;
-  --md-sys-shape-corner-small:        8px;
-  --md-sys-shape-corner-medium:       12px;
-  --md-sys-shape-corner-large:        16px;
-  --md-sys-shape-corner-extra-large:  28px;
-  --md-sys-shape-corner-full:         9999px;
+  /* ── Semantic: status ────────────────────────────── */
+  --color-success:    var(--atlas-green-400);
+  --color-success-bg: var(--atlas-green-100);
+  --color-error:      var(--atlas-red-400);
+  --color-error-bg:   var(--atlas-red-100);
+  --color-warning:    var(--atlas-yellow-500);
+  --color-warning-bg: var(--atlas-yellow-100);
+  --color-info:       var(--atlas-blue-500);
+  --color-info-bg:    var(--atlas-blue-100);
 
-  /* ── Motion easing ───────────────────────────────── */
-  --md-sys-motion-easing-standard:          cubic-bezier(0.2, 0, 0, 1.0);
-  --md-sys-motion-easing-standard-decel:    cubic-bezier(0, 0, 0, 1.0);
-  --md-sys-motion-easing-standard-accel:    cubic-bezier(0.3, 0, 1, 1);
-  --md-sys-motion-easing-emphasized:        cubic-bezier(0.2, 0, 0, 1.0);
-  --md-sys-motion-easing-emphasized-decel:  cubic-bezier(0.05, 0.7, 0.1, 1.0);
-  --md-sys-motion-easing-emphasized-accel:  cubic-bezier(0.3, 0, 0.8, 0.15);
-
-  /* ── Duration tokens ─────────────────────────────── */
-  --md-sys-motion-duration-short1:  50ms;
-  --md-sys-motion-duration-short2:  100ms;
-  --md-sys-motion-duration-short3:  150ms;
-  --md-sys-motion-duration-short4:  200ms;
-  --md-sys-motion-duration-medium1: 250ms;
-  --md-sys-motion-duration-medium2: 300ms;
-  --md-sys-motion-duration-medium3: 350ms;
-  --md-sys-motion-duration-medium4: 400ms;
-  --md-sys-motion-duration-long1:   450ms;
-  --md-sys-motion-duration-long2:   500ms;
-  --md-sys-motion-duration-long3:   550ms;
-  --md-sys-motion-duration-long4:   600ms;
+  /* ── Shape ───────────────────────────────────────── */
+  --radius-sm:   3px;
+  --radius-md:   4px;
+  --radius-lg:   8px;
+  --radius-full: 9999px;
 
   /* ── Spacing (4px base) ──────────────────────────── */
-  --space-1:   4px;
-  --space-2:   8px;
-  --space-3:   12px;
-  --space-4:   16px;
-  --space-5:   20px;
-  --space-6:   24px;
-  --space-8:   32px;
-  --space-10:  40px;
-  --space-12:  48px;
-  --space-16:  64px;
-  --space-20:  80px;
-}
+  --space-1:  4px;
+  --space-2:  8px;
+  --space-3:  12px;
+  --space-4:  16px;
+  --space-5:  20px;
+  --space-6:  24px;
+  --space-8:  32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-20: 80px;
 
-/* ── Dark scheme ─────────────────────────────────── */
-[data-theme="dark"] {
-  --md-sys-color-primary:                  #60DB9E;
-  --md-sys-color-on-primary:               #003824;
-  --md-sys-color-primary-container:        #005137;
-  --md-sys-color-on-primary-container:     #7DF8C3;
+  /* ── Shadows (Atlassian elevation) ───────────────── */
+  --shadow-card:    0 1px 1px rgba(9,30,66,.25), 0 0 0 1px rgba(9,30,66,.08);
+  --shadow-raised:  0 4px 8px -2px rgba(9,30,66,.25), 0 0 0 1px rgba(9,30,66,.08);
+  --shadow-overlay: 0 8px 16px -4px rgba(9,30,66,.25), 0 0 0 1px rgba(9,30,66,.08);
 
-  --md-sys-color-secondary:                #B3CCBE;
-  --md-sys-color-on-secondary:             #1F352B;
-  --md-sys-color-secondary-container:      #354B41;
-  --md-sys-color-on-secondary-container:   #CFE9DC;
+  /* ── Navigation ──────────────────────────────────── */
+  --nav-height:  56px;
+  --nav-bg:      #0747A6;
+  --nav-text:    var(--atlas-n0);
 
-  --md-sys-color-tertiary:                 #A6CCDF;
-  --md-sys-color-on-tertiary:              #073546;
-  --md-sys-color-tertiary-container:       #244C5E;
-  --md-sys-color-on-tertiary-container:    #C2E8FC;
+  /* ── Typography ──────────────────────────────────── */
+  --font-body: 'Inter Variable', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-size-xs:  11px;
+  --font-size-sm:  12px;
+  --font-size-md:  14px;
+  --font-size-lg:  16px;
+  --font-size-xl:  20px;
+  --font-size-2xl: 24px;
+  --font-size-3xl: 29px;
+  --font-size-4xl: 35px;
 
-  --md-sys-color-error:                    #FFB4AB;
-  --md-sys-color-on-error:                 #690005;
-  --md-sys-color-error-container:          #93000A;
-  --md-sys-color-on-error-container:       #FFDAD6;
+  /* ── Rating colours ──────────────────────────────── */
+  --color-rating-1: var(--atlas-red-400);
+  --color-rating-2: var(--atlas-yellow-500);
+  --color-rating-3: var(--atlas-yellow-400);
+  --color-rating-4: var(--atlas-green-400);
+  --color-rating-5: var(--atlas-green-500);
 
-  --md-sys-color-surface:                  #0F1511;
-  --md-sys-color-on-surface:               #DEE4DF;
-  --md-sys-color-surface-variant:          #404944;
-  --md-sys-color-on-surface-variant:       #BFC9C2;
-  --md-sys-color-surface-container-lowest: #0A0F0C;
-  --md-sys-color-surface-container-low:    #171D1A;
-  --md-sys-color-surface-container:        #1B2120;
-  --md-sys-color-surface-container-high:   #262B28;
-  --md-sys-color-surface-container-highest:#303633;
-
-  --md-sys-color-outline:                  #899389;
-  --md-sys-color-outline-variant:          #404944;
-
-  --md-sys-color-inverse-surface:          #DEE4DF;
-  --md-sys-color-inverse-on-surface:       #2B322E;
-  --md-sys-color-inverse-primary:          #006B4B;
+  /* ── Chart colours ───────────────────────────────── */
+  --chart-1: var(--atlas-blue-400);
+  --chart-2: var(--atlas-green-400);
+  --chart-3: var(--atlas-purple-400);
+  --chart-4: var(--atlas-teal-400);
+  --chart-5: var(--atlas-yellow-500);
 }

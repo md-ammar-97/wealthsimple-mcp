@@ -1,11 +1,11 @@
 import type { Metadata } from 'next';
-import '../styles/tokens.css';
 import '../styles/global.css';
 import '../styles/print.css';
+import { AtlasNav } from '@/components/AtlasNav/AtlasNav';
 
 export const metadata: Metadata = {
-  title: 'Weekly Review Pulse — Wealthsimple Canada',
-  description: 'Turn app reviews into a 250-word product insight note every week.',
+  title: 'Review Pulse — App Store Intelligence',
+  description: 'Automated review analysis and weekly insight reports.',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -17,7 +17,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
         />
       </head>
-      <body>{children}</body>
+      <body>
+        <AtlasNav />
+        {children}
+      </body>
     </html>
   );
 }

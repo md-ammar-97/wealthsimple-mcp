@@ -1,98 +1,252 @@
+/* ── Main layout ──────────────────────────────────── */
 .main {
-  min-height: 100dvh;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: var(--space-8) var(--space-4);
-  background: var(--md-sys-color-surface);
+  flex-direction: column;
+  min-height: calc(100dvh - var(--nav-height));
+  background: var(--color-bg-page);
 }
 
+/* ── Hero ─────────────────────────────────────────── */
 .hero {
-  max-width: 720px;
-  width: 100%;
+  background: linear-gradient(160deg, var(--atlas-blue-700) 0%, var(--atlas-blue-500) 60%, var(--color-primary) 100%);
+  padding: var(--space-12) var(--space-6) var(--space-10);
   display: flex;
   flex-direction: column;
   align-items: center;
+  gap: var(--space-8);
+}
+
+.heroInner {
+  max-width: 760px;
   text-align: center;
-  gap: var(--space-6);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.heroBadge {
+  background: rgba(255,255,255,.18) !important;
+  color: rgba(255,255,255,.95) !important;
+  border: 1px solid rgba(255,255,255,.25);
+  margin-bottom: var(--space-2);
 }
 
 .headline {
-  font-family: 'DM Serif Display', serif;
-  font-size: clamp(2rem, 5vw, 2.8125rem);
-  font-weight: 400;
+  font-size: clamp(2rem, 4.5vw, 2.75rem);
+  font-weight: 700;
+  color: var(--atlas-n0);
   line-height: 1.2;
-  color: var(--md-sys-color-on-surface);
+  letter-spacing: -.02em;
 }
 
-.brand {
-  color: var(--md-sys-color-primary);
+.highlight {
+  color: var(--atlas-blue-100);
 }
 
 .subtitle {
-  font-size: 1.125rem;
+  font-size: var(--font-size-xl);
+  color: rgba(255,255,255,.82);
   line-height: 1.6;
-  color: var(--md-sys-color-on-surface-variant);
+  max-width: 580px;
 }
 
-.cta {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
-  background: var(--md-sys-color-primary);
-  color: var(--md-sys-color-on-primary);
-  font-size: 1rem;
-  font-weight: 500;
-  padding: var(--space-4) var(--space-8);
-  border-radius: var(--md-sys-shape-corner-full);
-  text-decoration: none;
-  box-shadow: var(--shadow-2);
-  transition:
-    background var(--md-sys-motion-duration-short4) var(--md-sys-motion-easing-standard),
-    transform  var(--md-sys-motion-duration-short4) var(--md-sys-motion-easing-standard);
-}
-.cta:hover { transform: scale(1.02); }
-
-.pipelineStrip {
+.ctas {
   display: flex;
-  align-items: center;
-  background: var(--md-sys-color-surface-container-low);
-  border-radius: var(--md-sys-shape-corner-large);
-  padding: var(--space-4) var(--space-5);
-  gap: 0;
+  gap: var(--space-3);
   flex-wrap: wrap;
   justify-content: center;
-  row-gap: var(--space-3);
-  max-width: 100%;
+  margin-top: var(--space-2);
 }
 
-.stepPill {
+/* Primary CTA override for hero — white text on blue */
+.ctas :global(.btn-primary) {
+  background: var(--atlas-n0) !important;
+  color: var(--color-primary) !important;
+  font-weight: 700;
+}
+.ctas :global(.btn-primary:hover) {
+  background: var(--atlas-n10) !important;
+}
+.ctas :global(.btn-default) {
+  background: rgba(255,255,255,.15) !important;
+  color: var(--atlas-n0) !important;
+  box-shadow: inset 0 0 0 1.5px rgba(255,255,255,.4) !important;
+}
+.ctas :global(.btn-default:hover) {
+  background: rgba(255,255,255,.25) !important;
+}
+
+/* ── Pipeline strip ────────────────────────────────── */
+.pipelineCard {
+  background: rgba(255,255,255,.1);
+  border: 1px solid rgba(255,255,255,.18);
+  border-radius: var(--radius-md);
+  padding: var(--space-4) var(--space-6);
+  max-width: 900px;
+  width: 100%;
+}
+
+.pipelineLabel {
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: rgba(255,255,255,.55);
+  text-align: center;
+  margin-bottom: var(--space-3);
+}
+
+.steps {
   display: flex;
   align-items: center;
-  gap: var(--space-1);
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0;
+  row-gap: var(--space-3);
+}
+
+.step {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.arrow {
+  color: rgba(255,255,255,.35);
+  font-size: var(--font-size-sm);
+  margin: 0 4px;
 }
 
 .stepIcon {
-  font-size: 16px;
-  color: var(--md-sys-color-primary);
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  background: rgba(255,255,255,.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
+.stepIcon :global(.material-symbols-outlined) { color: var(--atlas-n0); font-size: 16px; }
 
 .stepLabel {
-  font-size: 0.75rem;
-  font-weight: 500;
-  color: var(--md-sys-color-on-surface-variant);
-  white-space: nowrap;
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  color: rgba(255,255,255,.75);
+  margin-left: 4px;
 }
 
-.connector {
-  display: block;
-  width: 16px;
-  height: 1px;
-  background: var(--md-sys-color-outline-variant);
-  margin-right: var(--space-1);
+/* ── Feature cards ────────────────────────────────── */
+.features {
+  background: var(--color-bg-page);
+  padding: var(--space-10) 0;
 }
 
-.tagline {
-  font-size: 0.875rem;
-  color: var(--md-sys-color-on-surface-variant);
+.featureGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: var(--space-5);
+}
+
+.featureCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-6);
+  background: var(--color-bg-card);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
+  text-decoration: none;
+  transition: box-shadow 150ms, transform 150ms;
+  border: 1px solid var(--color-border);
+}
+.featureCard:hover {
+  box-shadow: var(--shadow-raised);
+  transform: translateY(-2px);
+  text-decoration: none;
+}
+
+.featureTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.featureIcon {
+  font-size: 28px !important;
+  color: var(--color-primary);
+}
+
+.featureTitle {
+  font-size: var(--font-size-xl);
+  font-weight: 600;
+  color: var(--color-text-heading);
+  line-height: 1.3;
+}
+
+.featureDesc {
+  font-size: var(--font-size-md);
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+  flex: 1;
+}
+
+.featureCta {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-primary);
+}
+
+/* ── How it works ─────────────────────────────────── */
+.how {
+  background: var(--atlas-n10);
+  padding: var(--space-12) 0;
+  border-top: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.sectionTitle {
+  text-align: center;
+  margin-bottom: var(--space-8);
+}
+
+.howGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--space-6);
+}
+
+.howItem {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.howStep {
+  font-size: var(--font-size-3xl);
+  font-weight: 800;
+  color: var(--atlas-blue-200);
+  letter-spacing: -.04em;
+  line-height: 1;
+}
+
+.howTitle {
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  color: var(--color-text-heading);
+}
+
+.howDesc {
+  font-size: var(--font-size-md);
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+}
+
+/* ── Responsive ───────────────────────────────────── */
+@media (max-width: 640px) {
+  .hero { padding: var(--space-8) var(--space-4) var(--space-6); }
+  .pipelineCard { padding: var(--space-3) var(--space-4); }
+  .ctas { flex-direction: column; align-items: stretch; }
+  .steps { gap: var(--space-2); }
+  .arrow { display: none; }
 }

@@ -62,8 +62,7 @@ def append_doc_section(
     )
 
     try:
-        # Long timeout — server blocks while operator approves in the terminal
-        with urllib.request.urlopen(req, timeout=300) as resp:
+        with urllib.request.urlopen(req, timeout=15) as resp:
             result: dict = json.loads(resp.read())
 
         run_data.setdefault("delivery", {})["doc_url"] = (

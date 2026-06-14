@@ -7,6 +7,9 @@ on:
   workflow_dispatch:
     # Allow manual trigger from GitHub Actions UI
 
+permissions:
+  contents: write   # needed to commit ledger.json back to the repo
+
 jobs:
   pulse:
     runs-on: ubuntu-latest
@@ -23,7 +26,7 @@ jobs:
           cache: pip
 
       - name: Create data directories
-        run: mkdir -p data/input data/output outputs
+        run: mkdir -p data/input data/output data/runs outputs
 
       - name: Cache HuggingFace models
         uses: actions/cache@v4
@@ -61,6 +64,19 @@ jobs:
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           MCP_API_KEY: ${{ secrets.MCP_API_KEY }}
+          APPROVAL_MODE: auto
+
+      # Commit updated ledger so the analytics page has persistent history
+      - name: Commit ledger update
+        if: steps.fetch.outputs.has_reviews == 'true'
+        run: |
+          git config user.name "pulse-bot"
+          git config user.email "pulse-bot@github-actions"
+          git add data/runs/ledger.json || true
+          git diff --staged --quiet || git commit -m "chore: ledger update [run ${{ github.run_id }}] [skip ci]"
+          git push
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       # Upload run artifacts for debugging (ignored if pipeline was skipped)
       - name: Upload run artifacts

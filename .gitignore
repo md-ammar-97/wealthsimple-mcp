@@ -7,6 +7,7 @@ __pycache__/
 data/input/
 data/output/
 data/runs/
+!data/runs/ledger.json
 outputs/
 config/mcp/google_docs.json
 config/mcp/gmail.json

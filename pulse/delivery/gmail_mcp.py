@@ -69,7 +69,7 @@ def create_gmail_draft(
     )
 
     try:
-        with urllib.request.urlopen(req, timeout=300) as resp:
+        with urllib.request.urlopen(req, timeout=15) as resp:
             result: dict = json.loads(resp.read())
 
         draft_id: str = result.get("draft_id", "")

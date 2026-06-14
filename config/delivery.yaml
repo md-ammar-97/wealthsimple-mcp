@@ -7,11 +7,11 @@ delivery_mode: mcp
 mcp_server_url: "https://mcp-server-google-695514226672.europe-west1.run.app"
 
 docs_mcp:
-  enabled: false
+  enabled: true
   # Google Doc where weekly pulse notes are appended
   # https://docs.google.com/document/d/1CGfHgYXRhyEy3Yss9Qxmu1onO_roWWyTyo4u8CyKt9M/edit
   doc_id: "1CGfHgYXRhyEy3Yss9Qxmu1onO_roWWyTyo4u8CyKt9M"
 
 gmail_mcp:
-  enabled: false
+  enabled: true
   email_mode: draft   # draft | send
