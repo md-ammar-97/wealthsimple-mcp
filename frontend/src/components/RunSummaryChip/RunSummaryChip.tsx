@@ -15,7 +15,7 @@ export function RunSummaryChip({ result }: Props) {
         {result.lowDataWarning ? 'warning' : 'check_circle'}
       </span>
       <span>
-        {result.reviewCount} reviews · {result.themes.length} themes · {result.wordCount} words
+        {result.reviewCount} reviews · {(result.themes ?? []).length} themes · {result.wordCount} words
         {ts && ` · ${ts}`}
       </span>
     </div>

@@ -11,9 +11,9 @@ type Props = { result: RunResult; };
 export function PulseNoteBanner({ result }: Props) {
   const { copy, copied } = useClipboard();
 
-  const topThemes   = result.themes.slice(0, 3);
-  const topQuotes   = result.quotes.slice(0, 3);
-  const topActions  = result.actions.slice(0, 3);
+  const topThemes   = (result.themes  ?? []).slice(0, 3);
+  const topQuotes   = (result.quotes  ?? []).slice(0, 3);
+  const topActions  = (result.actions ?? []).slice(0, 3);
 
   return (
     <motion.section

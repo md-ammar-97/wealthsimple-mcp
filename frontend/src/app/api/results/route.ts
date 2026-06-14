@@ -18,7 +18,7 @@ export async function GET() {
     const summary = JSON.parse(summaryRaw);
 
     if (summary.status === 'running') {
-      return NextResponse.json({ error: 'Pipeline is still running — please wait' }, { status: 202 });
+      return NextResponse.json({ error: 'Pipeline is still running — please wait' }, { status: 503 });
     }
     if (summary.status === 'error') {
       const msg = (summary.errors as string[] | undefined)?.[0] ?? 'Pipeline failed';

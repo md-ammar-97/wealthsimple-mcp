@@ -21,9 +21,10 @@ export default function ResultsPage() {
 
   useEffect(() => {
     fetch('/api/results')
-      .then(r => {
-        if (!r.ok) throw new Error('Results not found — run the pipeline first.');
-        return r.json();
+      .then(async r => {
+        const data = await r.json();
+        if (!r.ok || data.error) throw new Error(data.error || 'Results not found — run the pipeline first.');
+        return data;
       })
       .then(setResult)
       .catch(e => setError(e.message))
@@ -85,7 +86,7 @@ export default function ResultsPage() {
             whileInView="visible"
             viewport={{ once: true, margin: '-32px' }}
           >
-            {result.themes.map(t => (
+            {(result.themes ?? []).map(t => (
               <ThemeCard
                 key={t.theme}
                 rank={t.rank}
@@ -107,7 +108,7 @@ export default function ResultsPage() {
             whileInView="visible"
             viewport={{ once: true, margin: '-32px' }}
           >
-            {result.quotes.map((q, i) => (
+            {(result.quotes ?? []).map((q, i) => (
               <QuoteBlock
                 key={i}
                 quote={q.quote}
@@ -131,7 +132,7 @@ export default function ResultsPage() {
             whileInView="visible"
             viewport={{ once: true, margin: '-32px' }}
           >
-            {result.actions.map((a, i) => (
+            {(result.actions ?? []).map((a, i) => (
               <ActionCard key={i} index={i + 1} action={a.action} linkedTheme={a.linkedTheme} />
             ))}
           </motion.div>
