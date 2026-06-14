@@ -78,10 +78,16 @@ export async function POST() {
     JSON.stringify({ run_id: runId, status: 'running', started_at: new Date().toISOString() }),
   );
 
-  const child = spawn(PYTHON_BIN, ['-m', 'pulse.cli', 'run', '--input', 'data/input/reviews.csv'], {
+  const INPUT_CSV = path.join(PROJECT_ROOT, 'data', 'input', 'reviews.csv');
+  const child = spawn(PYTHON_BIN, [
+    '-m', 'pulse.cli', 'run',
+    '--input', INPUT_CSV,
+    '--output-dir', OUTPUTS_DIR,
+  ], {
     cwd: PROJECT_ROOT,
     env: { ...process.env, PYTHONUNBUFFERED: '1' },
   });
+  console.log('[pipeline spawn]', PYTHON_BIN, '--input', INPUT_CSV, '--output-dir', OUTPUTS_DIR, 'cwd:', PROJECT_ROOT);
 
   child.stdout.on('data', (chunk: Buffer) => {
     for (const raw of chunk.toString().split('\n')) {
@@ -93,7 +99,7 @@ export async function POST() {
         global.pipelineRun = state;
         global.pipelineQueue.push(state);
       } catch {
-        // non-JSON stdout line — ignore
+        console.log('[pipeline stdout]', line);
       }
     }
   });

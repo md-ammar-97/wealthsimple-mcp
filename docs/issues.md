@@ -136,10 +136,42 @@ Added diagnostics:
 
 ---
 
+## ISSUE-007 — "Pipeline exited 0 but summary status is 'running' after 10s"
+
+**Status:** IN PROGRESS (2026-06-13)  
+**Symptom:** The diagnostic message added in ISSUE-006 now surfaces in the browser: "Pipeline exited 0 but summary status is 'running' after 10s". Python exits code 0 via normal completion (confirmed: no `sys.exit(0)` in codebase; validation failures use `sys.exit(1)`). This means `run_pipeline()` returns normally and `write_run_summary()` at orchestrator.py line 238 IS called — but the file lands at the wrong path.
+
+### Root Cause
+The spawn call passes **relative paths**:
+```typescript
+spawn(PYTHON_BIN, ['-m', 'pulse.cli', 'run', '--input', 'data/input/reviews.csv'], {
+  cwd: PROJECT_ROOT, ...
+})
+```
+Python resolves `outputs/run_summary.json` relative to its actual runtime CWD. If Render does not fully honor the `cwd` spawn option, Python writes to a different directory than `${PROJECT_ROOT}/outputs/`. Node's verification loop polls the wrong path and sees only the stale 'running' placeholder.
+
+**Confirmed non-causes:** No `sys.exit(0)` anywhere; delivery guard does not skip `write_run_summary`; `use_clustering: false`.
+
+### Fix Applied
+Pass absolute paths so Python's runtime CWD is irrelevant:
+```typescript
+const INPUT_CSV = path.join(PROJECT_ROOT, 'data', 'input', 'reviews.csv');
+const child = spawn(PYTHON_BIN, [
+  '-m', 'pulse.cli', 'run',
+  '--input', INPUT_CSV,
+  '--output-dir', OUTPUTS_DIR,
+], { cwd: PROJECT_ROOT, env: { ...process.env, PYTHONUNBUFFERED: '1' } });
+console.log('[pipeline spawn]', PYTHON_BIN, '--input', INPUT_CSV, '--output-dir', OUTPUTS_DIR, 'cwd:', PROJECT_ROOT);
+```
+Also: non-JSON stdout (previously silently dropped) now logged via `console.log('[pipeline stdout]', line)`.
+
+**Files:** `frontend/src/app/api/run/route.ts`
+
+---
+
 ## Open Investigation Items
 
 | Item | Where to look |
 |---|---|
-| Why Python exits 0 without writing `run_summary.json` on Render | Render logs: `[pipeline close] code:` + `[pipeline close] unexpected summary status` |
-| Whether `run_summary.json` path differs between Node and Python on Render | `/api/debug` → check `projectRoot`, `runSummaryContent` |
+| Confirm ISSUE-007 fix resolved the path problem | Render logs: `[pipeline spawn]` shows absolute paths; no "unexpected summary status" after next deploy |
 | Whether GROQ_API_KEY is set and Groq calls succeed | Render logs: Python stderr during step 3 (classify) |
