@@ -1015,20 +1015,29 @@ This allows comparison between weeks and debugging of any specific run without r
 
 ## 22. Frontend / UI Integration
 
-The Next.js frontend (defined in [design.md](design.md)) is a **reading surface**, not an analytics dashboard. Its role is to present pipeline outputs to stakeholders in a clean, scannable format.
+The Next.js 15 frontend is a three-page Atlassian-styled application. Design system: Atlassian token palette (not Material Design 3) with Recharts for analytics charts.
+
+### Pages
+
+| Page | Route | Description |
+|---|---|---|
+| Homepage | `/` | Marketing hero, 8-step pipeline strip, two entry cards (Wealthsimple Analytics / Analyse Any App) |
+| CSV Upload | `/upload` | App name + email fields, CSV drag/drop, 8-step SSE progress, inline results (themes/quotes/actions/note), email sent automatically |
+| Analytics | `/analytics` | Date filter, 4 metric cards, Recharts charts (review volume bar, runs over time line), full run history table with Google Docs links |
+
+### Key frontend architecture decisions
 
 | Principle | Implementation |
 |---|---|
-| Upload and trigger | `<UploadZone />` → `POST /api/upload` + `POST /api/run` |
-| Live progress | `<PipelineTracker />` consuming SSE from `GET /api/pipeline/status` |
-| Results display | `<PulseNoteBanner />`, `<ThemeCard />`, `<QuoteBlock />`, `<ActionCard />` |
-| Email preview | `<EmailPreview />` — inline editable sender name; copy-to-clipboard |
-| Export | "Export PDF" → `window.print()` via print stylesheet |
-| Data source | UI reads `outputs/run_summary.json` and the rendered artifact files; it does not reprocess CSV data |
-| Privacy enforcement | UI must not bypass backend PII redaction; raw CSV is never loaded into the browser |
-| Theme legend | `<ThemeLegendDrawer />` — all 8 themes with short codes and descriptions |
+| All-in-one upload | `/upload` shows form → progress → results on one page; no redirect |
+| Email after CSV run | `/api/run` calls `POST /create_email_draft` on MCP server after exit code 0; `email` + `appName` stored in `global.csvMeta` |
+| SSE event queue | `global.pipelineQueue[]` prevents event loss when Python flushes multiple log lines per TCP chunk |
+| Analytics data source | `/api/analytics` reads `data/runs/ledger.json`; committed by GitHub Actions so data survives Render redeploys |
+| Design tokens | Atlassian palette (`--color-primary: #0052CC`, `--nav-bg: #0747A6`, neutrals N0–N800) in `src/styles/tokens.css` |
+| CSS primitives | `.btn`, `.btn-primary`, `.atlas-card`, `.badge-*`, `.section-msg-*` in `src/styles/global.css` |
+| Privacy | Raw CSV never exposed via API; `data/input/reviews.csv` is write-only from the browser's perspective |
 
-M3-inspired design system tokens, Framer Motion animation variants, and full component specifications are defined in [design.md](design.md).
+Legacy routes (`/run`, `/results`) remain functional for direct pipeline access.
 
 ---
 
@@ -1123,15 +1132,21 @@ The following are explicitly **out of scope for v1** and must not be implemented
 
 | Component | Platform | Trigger | Status |
 |---|---|---|---|
-| `google-mcp-server` | Google Cloud Run (`europe-west1`) | `git push` → Cloud Build → Cloud Run | Live |
-| Weekly pipeline | GitHub Actions | cron `0 8 * * 1` (Mon 08:00 UTC) + `workflow_dispatch` | Live |
-| Frontend + backend | Render (Node.js + Python full-stack) | `git push main` | TBD |
+| `google-mcp-server` | Google Cloud Run (`europe-west1`) | `git push` → Cloud Build → Cloud Run | ✅ Live |
+| Weekly pipeline | GitHub Actions | cron `0 8 * * 1` (Mon 08:00 UTC) + `workflow_dispatch` | ✅ Live |
+| Frontend + backend | Render (Node.js + Python full-stack) | `git push main` | ✅ Live |
 
-**Why Render, not Vercel:** The Next.js API routes spawn Python subprocesses via `spawn('python', ['-m', 'pulse.cli', ...])` and write to the local filesystem. Vercel serverless functions have a 10s timeout, no subprocess support, and no persistent filesystem between requests. The full stack must run on a persistent server environment.
+**Live URL:** `https://wealthsimple-mcp.onrender.com`
+
+**Why Render, not Vercel:** The Next.js API routes spawn Python subprocesses via `spawn('python3', ['-m', 'pulse.cli', ...])` and write to the local filesystem. Vercel serverless functions have a 10s timeout, no subprocess support, and no persistent filesystem between requests. The full stack must run on a persistent server environment.
+
+**Render RAM constraint:** The free plan has 512 MB RAM. The BAAI/bge-small-en-v1.5 embedding model (~400–600 MB) causes an OOM kill (SIGKILL). Production setting: `use_clustering: false` in `config/pipeline.yaml` — the pipeline uses direct LLM classification. Re-enable clustering on a paid instance (1 GB+ RAM).
+
+**Analytics persistence:** GitHub Actions commits `data/runs/ledger.json` back to the repo after every weekly run (`[skip ci]`). The `/analytics` page reads this file via `/api/analytics`, so historical data survives Render redeploys that wipe ephemeral disk state.
 
 See [DEPLOYMENT.md](../DEPLOYMENT.md) for step-by-step deployment instructions.
 
 ---
 
-*Document version: 2.1 — Updated to reflect live Cloud Run delivery, Google Play only, Render deployment target.*
-*Supersedes the MVP sketch in v1.0. Maintained alongside [context.md](context.md), [data_model.md](data_model.md), [design.md](design.md), and [edge_cases.md](edge_cases.md).*
+*Document version: 3.0 — Updated to reflect all three phases complete: Render live, 3-page Atlassian UI, GitHub Actions ledger commit, MCP delivery enabled.*
+*Maintained alongside [context.md](context.md), [data_model.md](data_model.md), [design.md](design.md), and [edge_cases.md](edge_cases.md).*

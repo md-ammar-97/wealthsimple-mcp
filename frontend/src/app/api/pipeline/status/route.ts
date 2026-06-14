@@ -7,7 +7,12 @@ const STEP_MAP: Record<string, number> = {
 };
 
 function stageToStepUpdate(run: RunState & { step?: number; name?: string }): string | null {
-  if (run.completed) return JSON.stringify({ completed: true });
+  if (run.completed) {
+    if (run.stage === 'error') {
+      return JSON.stringify({ completed: true, error: run.error });
+    }
+    return JSON.stringify({ completed: true });
+  }
 
   let stepId: number | undefined;
   let state: 'active' | 'done' | 'error' = 'active';
@@ -36,6 +41,7 @@ function stageToStepUpdate(run: RunState & { step?: number; name?: string }): st
 }
 
 export async function GET(req: NextRequest) {
+  const runId = req.nextUrl.searchParams.get('runId') ?? null;
   const encoder = new TextEncoder();
 
   const stream = new ReadableStream({
@@ -46,9 +52,14 @@ export async function GET(req: NextRequest) {
       const interval = setInterval(() => {
         ticks++;
 
-        // Drain any queued events first
+        // Drain queued events for this specific runId
         const queue: RunState[] = global.pipelineQueue ?? [];
         while (queue.length > 0) {
+          // Peek to check runId before shifting
+          if (runId && queue[0].runId !== runId) {
+            queue.shift(); // discard stale event from a different run
+            continue;
+          }
           const run = queue.shift()!;
           const payload = stageToStepUpdate(run as RunState & { step?: number; name?: string });
           if (payload) {

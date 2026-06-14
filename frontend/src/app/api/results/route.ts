@@ -29,7 +29,7 @@ export async function GET() {
       runId:          summary.run_id ?? summary.runId ?? 'unknown',
       periodStart:    summary.period_start ?? '',
       periodEnd:      summary.period_end ?? '',
-      reviewCount:    summary.review_count ?? 0,
+      reviewCount:    summary.reviews_ingested ?? summary.review_count ?? 0,
       themes:         (summary.top_themes ?? []).map((t: Record<string, unknown>, i: number) => ({
         theme:       t.theme,
         reviewCount: t.count ?? t.review_count ?? 0,

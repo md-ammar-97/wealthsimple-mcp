@@ -16,8 +16,8 @@ Step-by-step delivery guide for the full system. Each phase has a clear, testabl
 | 1 | Foundation & Data Ingestion | CSV loads, validates, redacts PII, writes `reviews_clean.csv` | 1–2 |
 | 2 | Analysis (LLM Integration) | Theme classification, quote selection, action generation | 3 |
 | 3 | Output Rendering, CLI & Ledger | All 4 output files; `pulse run` working end-to-end | 4–6 |
-| 4 | Frontend (Next.js UI) | 5-page reading surface; live pipeline tracker via SSE | UI |
-| 5 | Optional MCP Delivery | Google Docs + Gmail delivery (feature-flagged) | 5 ext |
+| 4 | Frontend (Next.js UI) | 3-page Atlassian UI: `/`, `/upload`, `/analytics`; SSE progress; MCP email on upload | UI |
+| 5 | MCP Delivery | Google Docs + Gmail delivery; automated via GitHub Actions; `APPROVAL_MODE=auto` | 5 ext |
 
 ---
 
@@ -788,9 +788,11 @@ if __name__ == "__main__":
 
 ## Phase 4 — Frontend (Next.js UI)
 
-**Goal:** Build the Next.js 15 reading surface defined in [design.md](design.md). By end of Phase 4 stakeholders can upload a CSV from a browser, watch the 8-step pipeline run in real time via SSE, and read the full results — themes, quotes, actions, pulse note, email preview — in a polished M3-inspired UI.
+**Goal:** Build a 3-page Atlassian Design System frontend. Stakeholders and self-serve users can upload a CSV, watch the 8-step pipeline run in real time via SSE, view inline results, receive an automated email, and explore historical Wealthsimple analytics — all from the browser.
 
-**Demo milestone:** Upload `sample_reviews.csv` at `localhost:3000/run`; all 8 pipeline steps animate to completion; `/results` shows the complete pulse note, 3 theme cards, 3 quote blocks, 3 action cards, and email preview.
+**Status: COMPLETE — `npm run build` passes; 0 TypeScript errors; all 6 API routes functional; deployed on Render.**
+
+**Demo milestone (achieved):** Upload any app's CSV at `/upload`; all 8 pipeline steps animate to completion; themes, quotes, actions, and pulse note appear inline; MCP email draft sent automatically. `/analytics` shows Recharts charts populated from `ledger.json`.
 
 ---
 
@@ -799,176 +801,139 @@ if __name__ == "__main__":
 ```bash
 cd MCP_Project/frontend
 npx create-next-app@15 . --typescript --no-tailwind --app
+npm install recharts
 npm install framer-motion@11
 npm install @fontsource-variable/inter
-npm install @fontsource/dm-serif-display
 ```
-
-Directory structure follows [design.md §12](design.md) exactly.
 
 ---
 
-### 4.2 Files to Create — Phase 4
+### 4.2 Files Created — Phase 4
 
 **Styles + tokens:**
 
-| File | Content | Design ref |
-|---|---|---|
-| `src/styles/tokens.css` | All CSS custom properties: colour, type, shape, motion, spacing | [design §1–5, §9](design.md) |
-| `src/styles/global.css` | Reset, base element styles, theme toggle transition | [design §11](design.md) |
-| `src/styles/print.css` | Print overrides for PDF export | [design §7.5](design.md) |
-| `src/motion/variants.ts` | `fadeUp`, `staggerChildren`, `scaleIn`, `slideInRight`, `pipelineStep` | [design §5.3](design.md) |
-| `src/types/pipeline.ts` | `StepState`, `PipelineStatus`, `RunResult` | [design §13](design.md) |
+| File | Content |
+|---|---|
+| `src/styles/tokens.css` | Atlassian palette: `--color-primary: #0052CC`, `--nav-bg: #0747A6`, neutrals N0–N800, semantic tokens |
+| `src/styles/global.css` | Base reset; `.btn`, `.btn-primary`, `.btn-default`, `.btn-lg`, `.atlas-card`, `.atlas-input`, `.badge-*`, `.section-msg-*` primitives |
 
 **App routes:**
 
-| Route | Purpose | Design ref |
+| Route | File | Description |
 |---|---|---|
-| `src/app/layout.tsx` | Root layout; theme provider; font imports | [design §12](design.md) |
-| `src/app/page.tsx` | Landing page (`/`) | [design §7.2](design.md) |
-| `src/app/run/page.tsx` | Upload + pipeline tracker (`/run`) | [design §7.3](design.md) |
-| `src/app/results/page.tsx` | Full results (`/results`) | [design §7.4](design.md) |
-| `src/app/results/note/page.tsx` | Printable note (`/results/note`) | [design §7.5](design.md) |
-| `src/app/results/email/page.tsx` | Email standalone (`/results/email`) | — |
+| `/` | `src/app/page.tsx` + `page.module.css` | Hero with 8-step pipeline strip, two feature cards, "How it works" section |
+| `/upload` | `src/app/upload/page.tsx` + `upload.module.css` | Email + app name + CSV drag/drop → 8-step SSE progress → inline results → MCP email sent |
+| `/analytics` | `src/app/analytics/page.tsx` + `analytics.module.css` | Date filter, 4 metric cards, Recharts BarChart + LineChart, run history table with Google Docs links |
+| `/run` | `src/app/run/` | Legacy upload + pipeline tracker (retained, still functional) |
+| `/results` | `src/app/results/` | Legacy results view (retained, still functional) |
 
 **API routes:**
 
 | Route | Method | Purpose |
 |---|---|---|
-| `src/app/api/upload/route.ts` | `POST` | Accept CSV; validate headers; save to `data/input/` |
-| `src/app/api/run/route.ts` | `POST` | Spawn `pulse run`; return `{ runId }` immediately |
-| `src/app/api/pipeline/status/route.ts` | `GET` (SSE) | Stream per-step state events from pipeline stdout |
-| `src/app/api/results/route.ts` | `GET` | Return `RunResult` from `run_summary.json` + artifacts |
-| `src/app/api/results/csv/route.ts` | `GET` | Stream `reviews_clean.csv` for download |
+| `src/app/api/upload/route.ts` | `POST` | Accept CSV + `email` + `appName` (FormData); save to `data/input/reviews.csv`; store in `global.csvMeta` |
+| `src/app/api/run/route.ts` | `POST` | Spawn `pulse run`; initialise `global.pipelineQueue[]`; return `{ runId }` immediately; send MCP email after exit code 0 |
+| `src/app/api/pipeline/status/route.ts` | `GET` (SSE) | Drain `global.pipelineQueue` every 500ms; emit step state events; close on `completed: true` |
+| `src/app/api/results/route.ts` | `GET` | Read `outputs/run_summary.json` + artifact files; return `RunResult` |
+| `src/app/api/analytics/route.ts` | `GET` | Read `data/runs/ledger.json`; filter by `?days=`; return chart data + run history |
+| `src/app/api/debug/route.ts` | `GET` | Diagnostic: Python version, pulse install, filesystem state |
 
-**Components (build in this order — simpler first):**
+**Components:**
 
-| Component | Dependencies | Design ref |
-|---|---|---|
-| `RunSummaryChip` | none | [design §6.8](design.md) |
-| `RatingBar` | none | [design §6.10](design.md) |
-| `QuoteBlock` | none | [design §6.3](design.md) |
-| `ActionCard` | none | [design §6.4](design.md) |
-| `ThemeCard` | `RatingBar` | [design §6.2](design.md) |
-| `PipelineTracker` | step state types | [design §6.1](design.md) |
-| `UploadZone` | API routes | [design §6.7](design.md) |
-| `ThemeLegendDrawer` | none | [design §6.9](design.md) |
-| `PulseNoteBanner` | themes/quotes/actions | [design §6.5](design.md) |
-| `EmailPreview` | `useClipboard` | [design §6.6](design.md) |
-
-**Hooks:**
-
-| Hook | Purpose |
+| Component | Purpose |
 |---|---|
-| `src/hooks/usePipelineStatus.ts` | Consumes SSE from `/api/pipeline/status` |
-| `src/hooks/useTheme.ts` | Dark/light toggle with `localStorage` persistence |
-| `src/hooks/useClipboard.ts` | Copy-to-clipboard with Snackbar toast |
+| `src/components/AtlasNav/` | Sticky dark-blue navigation bar (`#0747A6`) with three links |
+| `src/components/PipelineTracker/` | 8-step progress indicator (SSE-driven, legacy `/run` route) |
 
 ---
 
-### 4.3 CSS Tokens (`src/styles/tokens.css`)
+### 4.3 Design Tokens (`src/styles/tokens.css`)
 
-Implement all design tokens from [design.md §1–5, §9](design.md):
+Atlassian Design System tokens — custom CSS properties, no `@atlaskit` packages:
 
-- **Colour:** full light scheme + `[data-theme="dark"]` dark scheme; theme category colours; rating dot colours
-- **Typography:** full M3 type scale tokens (Display / Headline / Title / Body / Label)
-- **Elevation:** 5 tonal surface container levels; 3 shadow tokens (modals only)
-- **Shape:** `corner-none` through `corner-full`
-- **Motion:** 6 M3 easing curves; 12 duration tokens
-- **Spacing:** 4px base unit scale (`--space-1` through `--space-20`)
+| Token | Value | Usage |
+|---|---|---|
+| `--color-primary` | `#0052CC` | Blue-500 — primary CTAs, active states |
+| `--nav-bg` | `#0747A6` | Blue-700 — AtlasNav background |
+| `--color-bg-page` | `#F4F5F7` | N10 — page background |
+| `--color-text-primary` | `#172B4D` | N800 — body text |
+| `--color-text-secondary` | `#6B778C` | N200 — secondary text |
+| `--shadow-card` | `0 1px 3px rgba(0,0,0,.12)` | Atlassian elevation 1 |
+| `--radius-md` | `4px` | Default card/button border radius |
+| `--atlas-red-300` | `#FF8F73` | Error step state in progress tracker |
 
 ---
 
 ### 4.4 API Route Details
 
 **`/api/upload` (`POST`):**
-- Receive `multipart/form-data` with `reviews.csv`
-- Validate: extension `.csv`, presence of required header columns (`platform`, `rating`, `text`, `date`)
-- Reject with 400 + error message if invalid
-- Save to `data/input/reviews.csv`
-- Return `{ rowCount: number }` (estimate from line count)
+- Receive `multipart/form-data` with `reviews.csv`, `email` (required), `appName` (optional)
+- Reject with 400 if email missing
+- Save CSV to `data/input/reviews.csv`
+- Store `global.csvMeta = { email, appName: appName || filename }`
+- Return `{ rowCount: number }`
 
 **`/api/run` (`POST`):**
-- Spawn `pulse fetch` then `pulse run --input data/output/reviews_clean.csv` as sequential child processes
-- Return `{ runId: string }` immediately (pipeline runs async)
-- Structured log output from pipeline is parsed by SSE route
+- Reset `global.pipelineQueue = []` on each new run
+- Write placeholder `run_summary.json` (`status: running`) before spawning — prevents 404 if polled during run
+- Spawn `python3 -m pulse.cli run --input data/input/reviews.csv`
+- Split each stdout chunk by `\n`; parse each line as JSON independently (fixes multi-line buffer bug)
+- Push parsed events onto `global.pipelineQueue`
+- After exit code 0: call `POST /create_email_draft` on MCP server (non-fatal if it fails)
+- Return `{ runId }` immediately
 
 **`/api/pipeline/status` (`GET`, SSE):**
 - `Content-Type: text/event-stream`
-- Parse structured JSON log lines from `pulse run` stdout
-- Map stage/event to step state: `idle → active → done | error`
-- Emit: `data: {"id": n, "label": "...", "state": "active", "detail": "..."}\n\n`
-- Close stream on `run_complete` or error event
+- Every 500ms: drain `global.pipelineQueue` and emit step state events
+- Queue-based drain prevents event loss when Python flushes multiple log lines per TCP chunk
+- Closes stream on `completed: true` event or after 12-minute timeout (1440 ticks)
 
 **`/api/results` (`GET`):**
-- Read `outputs/run_summary.json`, `outputs/weekly_note.md`, `outputs/email_draft.txt`
-- Parse and combine into `RunResult` matching `src/types/pipeline.ts`
+- Read `outputs/run_summary.json`; return 503 if `status: running` (client retries with backoff)
+- Read `outputs/weekly_note.md`, `outputs/email_draft.txt`
+- Return structured `RunResult` with `themes`, `quotes`, `actions`, `pulseNote`
 
-**`/api/results/csv` (`GET`):**
-- Stream `data/output/reviews_clean.csv`
-- Raw `data/input/reviews.csv` is never exposed via API
-
----
-
-### 4.5 Key Component Behaviours
-
-**`<PipelineTracker />`** ([design §6.1](design.md)):
-- Active step shows pulsing `primary-container` glow ring (Framer `animate` loop)
-- Connector line fills left-to-right via CSS `scaleX` as steps complete
-- Error state shows red × + error message card below step
-- Mobile: collapses to vertical stepper
-
-**`<UploadZone />`** ([design §6.7](design.md)):
-- Validates CSV extension and required headers on drop (before POST)
-- Drag-over: border → `primary`; background → `primary-container` at 0.08 opacity
-- Valid file: shows filename chip + row count + "Run pipeline" CTA
-
-**`<QuoteBlock />`** ([design §6.3](design.md)):
-- Enters via `slideInRight`, staggered 80ms per quote
-- Large typographic opening quote mark (`DM Serif Display`, `display-small`, `primary`, 0.15 opacity)
-
-**`<PulseNoteBanner />`** ([design §6.5](design.md)):
-- 3-column desktop layout (≥ 1024px); single column mobile
-- "Copy note" FAB copies Markdown to clipboard
-- "Export PDF" → `window.print()` with `print.css`
+**`/api/analytics` (`GET`):**
+- Read `data/runs/ledger.json`; filter entries by `?days=` cutoff
+- Build `weeklyVolume` map (ISO week key → `{ week, count, reviews }`)
+- Return `{ totalRuns, totalReviews, lastRunDate, lastRunReviews, weeklyVolume, runs }`
 
 ---
 
-### 4.6 Accessibility Checklist
+### 4.5 Key Behaviours
 
-For every component verify before marking done:
+**Upload page (`/upload`) stage machine:** `'form' | 'running' | 'done' | 'error'`
+- `handleSubmit`: POST to `/api/upload` (FormData with email+appName+CSV), then POST to `/api/run`
+- SSE connection opens immediately; 8-step grid updates as events arrive
+- `fetchResults()`: retries up to 5× with exponential backoff; 503 = still running
 
-- [ ] WCAG AA contrast: 4.5:1 body text; 3:1 large text
-- [ ] M3 focus ring: `3px solid primary`, `2px offset` on all interactive elements
-- [ ] `aria-live="polite"` on pipeline step update container
-- [ ] All drawers/modals closable via `Escape` key
-- [ ] `@media (prefers-reduced-motion)` disables all Framer Motion animations
-- [ ] `<blockquote>` for quote blocks; `<main>`, `<section>`, `<article>` semantic HTML
-- [ ] `aria-label` on icon-only buttons; `aria-valuenow` on rating bars
+**Progress tracker — event queue pattern:**
+- Python sometimes flushes multiple JSON log lines in one TCP chunk
+- Naive `JSON.parse(chunk.toString())` fails on multi-line buffers → events silently dropped
+- Fix: `chunk.toString().split('\n')` then parse each non-empty line independently
+- Queue drain at 500ms intervals prevents rapid successive events (step_done N, step_start N+1) from overwriting each other before the SSE tick fires
 
-```css
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
-    animation-duration: 0.01ms !important;
-    transition-duration: 0.01ms !important;
-  }
-}
-```
+**MCP email after CSV run:**
+- `/api/run` reads `global.csvMeta` after exit code 0
+- POSTs `{ to: email, subject: "Review Pulse Report — ${appName}", body }` to MCP server
+- Uses `X-Api-Key` header with `MCP_API_KEY` env var
+- 20-second timeout; failure is non-fatal and logged but does not affect pipeline exit state
 
 ---
 
-### 4.7 Phase 4 Acceptance Criteria
+### 4.6 Phase 4 Acceptance Criteria
 
-**Status: COMPLETE — `npm run build` passes; 0 type errors; all 5 API routes functional.**
+**Status: COMPLETE**
 
-- [x] `localhost:3000` landing page renders with correct M3 colour tokens and typography
-- [x] Upload `sample_reviews.csv` at `/run`; all 8 pipeline steps animate to completion
-- [x] `/results` shows: `PulseNoteBanner` + 3 `ThemeCard` + 3 `QuoteBlock` + 3 `ActionCard` + `EmailPreview`
-- [x] `/results/note` printable to PDF via `window.print()` with no Markdown syntax visible
-- [x] Dark mode toggle persists via `localStorage`; all colour tokens transition correctly
-- [x] Raw `reviews.csv` never served to browser; only `reviews_clean.csv` downloadable
-- [x] Reduced-motion media query disables all animations
-- [x] All ARIA labels and focus rings present and correct
+- [x] `localhost:3000` homepage renders with Atlassian blue hero, 8-step pipeline strip, feature cards
+- [x] `/upload`: CSV drag-drop + email field → POST to `/api/upload` + `/api/run` → 8 steps animate → inline themes/quotes/actions/note → MCP email sent
+- [x] `/analytics`: date filter → metric cards → Recharts BarChart (review volume) + LineChart (runs over time) → run history table with Google Docs links
+- [x] `npm run build` passes with 0 TypeScript errors
+- [x] SSE queue drains correctly: no silent event drops for multi-line stdout chunks
+- [x] `global.csvMeta` wired from upload to post-run email delivery
+- [x] `/api/analytics` reads `data/runs/ledger.json` and returns correct chart shape
+- [x] Raw `reviews.csv` never served to browser; only redacted artifacts exposed
+- [x] Atlassian token palette applied consistently across all 3 pages (blue `#0052CC`, nav `#0747A6`, N10 page background)
 
 ---
 
@@ -1040,11 +1005,15 @@ OAuth tokens and service account keys live **only** in Google Secret Manager (`g
 
 ### 5.6 Phase 5 Acceptance Criteria
 
-- [ ] With MCP disabled (default): Phase 3 output unchanged; no MCP code paths entered
-- [ ] With MCP enabled: Google Doc has new `wealthsimple-{iso_week}` section; `doc_url` in `run_summary.json`
-- [ ] With MCP enabled: Gmail draft created; `draft_id` in `run_summary.json`
-- [ ] Second run same week without `--force`: delivery skipped; prior delivery logged
-- [ ] MCP delivery failure does not abort pipeline; local `weekly_note.md` and `email_draft.txt` always written first
+**Status: COMPLETE — automated weekly delivery live on GitHub Actions.**
+
+- [x] With MCP disabled (default): Phase 3 output unchanged; no MCP code paths entered
+- [x] With MCP enabled: Google Doc has new `wealthsimple-{iso_week}` section; `doc_url` in `run_summary.json`
+- [x] With MCP enabled: Gmail draft created; `draft_id` in `run_summary.json`
+- [x] Second run same week without `--force`: delivery skipped; prior delivery logged
+- [x] MCP delivery failure does not abort pipeline; local `weekly_note.md` and `email_draft.txt` always written first
+- [x] `APPROVAL_MODE=auto` set on Cloud Run — automated runs do not require terminal operator approval
+- [x] GitHub Actions commits `data/runs/ledger.json` after each run with `[skip ci]` tag
 
 ---
 
@@ -1158,5 +1127,5 @@ npm run dev       # http://localhost:3000
 
 ---
 
-*Document version: 1.1 — Updated to reflect real data acquisition (Phase 0), Groq/Gemini LLM stack (replaces Anthropic), and 447-review production baseline. Aligned with [architecture.md](architecture.md) v2.0, [data_model.md](data_model.md), [edge_cases.md](edge_cases.md), and [design.md](design.md).*
+*Document version: 2.0 — Phase 4 updated to reflect 3-page Atlassian Design System UI (was 5-page M3). Phase 5 marked complete with `APPROVAL_MODE=auto` and GitHub Actions ledger commit. Aligned with [architecture.md](architecture.md) v3.0.*
 *Maintained alongside all documentation in `MCP_Project/`.*

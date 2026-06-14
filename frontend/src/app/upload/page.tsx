@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { usePipelineStatus } from '@/hooks/usePipelineStatus';
 import styles from './upload.module.css';
 
@@ -48,8 +48,8 @@ export default function UploadPage() {
 
   /* Poll results when pipeline completes */
   const fetchResults = useCallback(async () => {
-    for (let attempt = 0; attempt < 5; attempt++) {
-      await new Promise(r => setTimeout(r, attempt * 500));
+    for (let attempt = 0; attempt < 12; attempt++) {
+      if (attempt > 0) await new Promise(r => setTimeout(r, Math.min(attempt * 1000, 5000)));
       try {
         const r = await fetch('/api/results');
         const data = await r.json();
@@ -80,15 +80,19 @@ export default function UploadPage() {
 
   /* Watch for pipeline completion */
   const prevCompleted = useRef(false);
-  if (stage === 'running' && pipelineStatus.completed && !prevCompleted.current) {
-    prevCompleted.current = true;
-    fetchResults();
-  }
-  if (stage === 'running' && pipelineStatus.error && !prevCompleted.current) {
-    prevCompleted.current = true;
-    setError(pipelineStatus.error);
-    setStage('error');
-  }
+  useEffect(() => {
+    if (stage !== 'running' || prevCompleted.current) return;
+    if (pipelineStatus.error) {
+      prevCompleted.current = true;
+      setError(pipelineStatus.error);
+      setStage('error');
+      return;
+    }
+    if (pipelineStatus.completed) {
+      prevCompleted.current = true;
+      fetchResults();
+    }
+  }, [pipelineStatus.completed, pipelineStatus.error, stage, fetchResults]);
 
   /* File handling */
   const handleFile = useCallback(async (file: File) => {

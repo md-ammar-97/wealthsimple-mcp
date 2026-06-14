@@ -1,0 +1,34 @@
+[
+  {
+    "run_id": "run-20260609T065814Z-9f6f3c",
+    "input_hash": "sha256:50561c56f498",
+    "period_key": "wealthsimple-2026-W24",
+    "delivery_key": "wealthsimple-2026-W24-email",
+    "status": "success",
+    "started_at": "2026-06-09T06:58:14.843187+00:00",
+    "completed_at": "2026-06-09T06:59:49.955980+00:00",
+    "reviews_ingested": 144,
+    "themes_in_note": 3,
+    "note_word_count": 227,
+    "delivery": {
+      "mode": "local"
+    }
+  },
+  {
+    "run_id": "run-20260613T125253Z-4cad4d",
+    "input_hash": "sha256:3d400ce59b49",
+    "period_key": "wealthsimple-2026-W24",
+    "delivery_key": "wealthsimple-2026-W24-email",
+    "status": "success",
+    "started_at": "2026-06-13T12:52:53.548135+00:00",
+    "completed_at": "2026-06-13T12:54:14.100105+00:00",
+    "reviews_ingested": 142,
+    "themes_in_note": 3,
+    "note_word_count": 125,
+    "delivery": {
+      "mode": "mcp",
+      "doc_url": "https://docs.google.com/document/d/1CGfHgYXRhyEy3Yss9Qxmu1onO_roWWyTyo4u8CyKt9M",
+      "draft_id": "r-6329896641697444117"
+    }
+  }
+]

@@ -80,7 +80,7 @@ export async function POST() {
 
   const child = spawn(PYTHON_BIN, ['-m', 'pulse.cli', 'run', '--input', 'data/input/reviews.csv'], {
     cwd: PROJECT_ROOT,
-    env: { ...process.env },
+    env: { ...process.env, PYTHONUNBUFFERED: '1' },
   });
 
   child.stdout.on('data', (chunk: Buffer) => {
@@ -111,7 +111,9 @@ export async function POST() {
   child.on('error', (err: Error) => {
     activeRunId = null;
     console.error('[pipeline spawn error]', err.message, 'PYTHON_BIN:', PYTHON_BIN, 'CWD:', PROJECT_ROOT);
-    global.pipelineRun = { runId, stage: 'error', event: 'error', error: err.message, completed: false };
+    const errState: RunState = { runId, stage: 'error', event: 'error', error: err.message, completed: true };
+    global.pipelineRun = errState;
+    global.pipelineQueue.push(errState);
   });
 
   child.on('close', async (code: number | null) => {
@@ -128,13 +130,15 @@ export async function POST() {
         await sendEmailViaMcp(meta.email, meta.appName);
       }
     } else {
-      global.pipelineRun = {
+      const errState: RunState = {
         runId,
         stage: 'error',
         event: 'error',
         error: stderrBuf.trim() || `Process exited with code ${code}`,
-        completed: false,
+        completed: true,
       };
+      global.pipelineRun = errState;
+      global.pipelineQueue.push(errState);
     }
   });
 

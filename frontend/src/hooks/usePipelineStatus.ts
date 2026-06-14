@@ -39,7 +39,7 @@ export function usePipelineStatus(runId: string | null) {
       try {
         const data = JSON.parse(e.data);
         if (data.completed) {
-          setStatus(prev => ({ ...prev, completed: true }));
+          setStatus(prev => ({ ...prev, completed: true, error: data.error ?? prev.error }));
           es.close();
           return;
         }

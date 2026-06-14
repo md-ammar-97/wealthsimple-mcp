@@ -71,7 +71,8 @@ export async function GET(req: NextRequest) {
       weeklyVolume,
       runs,
     });
-  } catch {
+  } catch (e) {
+    console.error('[analytics] ledger read failed:', (e as Error).message, (e as Error).stack);
     return NextResponse.json({ error: 'Ledger not found or unreadable' }, { status: 404 });
   }
 }
