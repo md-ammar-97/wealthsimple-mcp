@@ -9,10 +9,10 @@ const EMAIL_FILE    = path.join(OUTPUTS_DIR, 'email_draft.txt');
 
 export async function GET() {
   try {
-    const [summaryRaw, noteText, emailText] = await Promise.all([
-      readFile(SUMMARY_FILE, 'utf8'),
-      readFile(NOTE_FILE, 'utf8'),
-      readFile(EMAIL_FILE, 'utf8'),
+    const summaryRaw = await readFile(SUMMARY_FILE, 'utf8');
+    const [noteText, emailText] = await Promise.all([
+      readFile(NOTE_FILE,  'utf8').catch(() => ''),
+      readFile(EMAIL_FILE, 'utf8').catch(() => ''),
     ]);
 
     const summary = JSON.parse(summaryRaw);

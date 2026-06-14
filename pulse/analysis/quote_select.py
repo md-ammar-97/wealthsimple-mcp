@@ -120,6 +120,9 @@ def _select_quote_for_theme(
                 "quote": raw_quote,
                 "review_id": source_review.get("review_id"),
                 "verified": True,
+                "platform": source_review.get("platform"),
+                "rating": source_review.get("rating"),
+                "date": str(source_review.get("date", "")),
             }
 
         # First retry failed — try strict prompt
@@ -152,6 +155,9 @@ def _select_quote_for_theme(
         "quote": quote.strip(),
         "review_id": fallback_review.get("review_id"),
         "verified": False,
+        "platform": fallback_review.get("platform"),
+        "rating": fallback_review.get("rating"),
+        "date": str(fallback_review.get("date", "")),
     }
 
 

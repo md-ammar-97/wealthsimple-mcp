@@ -165,17 +165,20 @@ def run_pipeline(
             "themes_found": len(ranked),
             "themes_in_note": len(top_themes),
             "selected_themes": top_themes,
+            "top_themes": ranked,  # full objects {theme, review_count, avg_rating} for frontend
         })
 
         # Step 5 — Select quotes
         log(run_id, "pipeline", "step_start", step=5, name="quote_select")
         quotes = select_quotes(themed, top_themes, config, run_id=run_id)
         log(run_id, "pipeline", "step_done", step=5, quotes=len(quotes))
+        run_data["quotes"] = quotes  # {theme, quote, review_id, verified, platform, rating, date}
 
         # Step 6 — Generate actions
         log(run_id, "pipeline", "step_start", step=6, name="action_gen")
         actions = generate_actions(top_themes, quotes, config, run_id=run_id)
         log(run_id, "pipeline", "step_done", step=6, actions=len(actions))
+        run_data["actions"] = actions  # {action, linked_theme}
 
         # Step 7 — Generate pulse note (in memory — NOT written yet; EC-44)
         log(run_id, "pipeline", "step_start", step=7, name="pulse_note")
