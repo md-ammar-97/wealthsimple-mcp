@@ -51,15 +51,25 @@ export async function POST() {
     }
   });
 
+  let stderrBuf = '';
   child.stderr.on('data', (chunk: Buffer) => {
     const msg = chunk.toString().trim();
     if (msg) {
+      stderrBuf += msg + '\n';
+      console.error('[pipeline stderr]', msg);
       global.pipelineRun = { runId, stage: 'error', event: 'error', error: msg, completed: false };
     }
   });
 
+  child.on('error', (err: Error) => {
+    activeRunId = null;
+    console.error('[pipeline spawn error]', err.message, 'PYTHON_BIN:', PYTHON_BIN, 'CWD:', PROJECT_ROOT);
+    global.pipelineRun = { runId, stage: 'error', event: 'error', error: err.message, completed: false };
+  });
+
   child.on('close', (code: number | null) => {
     activeRunId = null;
+    console.log('[pipeline close] code:', code, 'stderr:', stderrBuf.slice(0, 500));
     if (code === 0) {
       global.pipelineRun = { runId, stage: 'done', event: 'done', completed: true };
     } else {
@@ -67,7 +77,7 @@ export async function POST() {
         runId,
         stage: 'error',
         event: 'error',
-        error: `Process exited with code ${code}`,
+        error: stderrBuf.trim() || `Process exited with code ${code}`,
         completed: false,
       };
     }
