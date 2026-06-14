@@ -120,14 +120,37 @@ export async function POST() {
     activeRunId = null;
     console.log('[pipeline close] code:', code, 'stderr:', stderrBuf.slice(0, 500));
     if (code === 0) {
-      const doneState: RunState = { runId, stage: 'done', event: 'done', completed: true };
-      global.pipelineRun = doneState;
-      global.pipelineQueue.push(doneState);
+      // Verify run_summary.json was actually updated before signalling the browser.
+      // On Render there can be a lag between Python writing the file and Node reading it,
+      // or Python may have exited 0 before write_run_summary completed in an edge case.
+      const summaryPath = path.join(OUTPUTS_DIR, 'run_summary.json');
+      let summaryStatus = 'running';
+      for (let i = 0; i < 10; i++) {
+        try {
+          const raw = await readFile(summaryPath, 'utf8');
+          summaryStatus = (JSON.parse(raw) as { status: string }).status;
+        } catch { /* file not readable yet — retry */ }
+        if (summaryStatus !== 'running') break;
+        await new Promise(r => setTimeout(r, 1000));
+      }
 
-      // Send email to the CSV uploader if metadata was captured
-      const meta = global.csvMeta;
-      if (meta?.email) {
-        await sendEmailViaMcp(meta.email, meta.appName);
+      if (summaryStatus === 'success') {
+        const doneState: RunState = { runId, stage: 'done', event: 'done', completed: true };
+        global.pipelineRun = doneState;
+        global.pipelineQueue.push(doneState);
+        // Send email to the CSV uploader if metadata was captured
+        const meta = global.csvMeta;
+        if (meta?.email) {
+          await sendEmailViaMcp(meta.email, meta.appName);
+        }
+      } else {
+        const msg = summaryStatus === 'error'
+          ? 'Pipeline failed — check Render logs for details'
+          : `Pipeline exited 0 but summary status is '${summaryStatus}' after 10s`;
+        console.error('[pipeline close] unexpected summary status after exit 0:', summaryStatus);
+        const errState: RunState = { runId, stage: 'error', event: 'error', error: msg, completed: true };
+        global.pipelineRun = errState;
+        global.pipelineQueue.push(errState);
       }
     } else {
       const errState: RunState = {

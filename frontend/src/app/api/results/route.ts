@@ -18,6 +18,8 @@ export async function GET() {
     const summary = JSON.parse(summaryRaw);
 
     if (summary.status === 'running') {
+      const g = global as Record<string, unknown>;
+      console.error('[results] 503 — run_summary still running; pipelineRun:', JSON.stringify(g.pipelineRun ?? null));
       return NextResponse.json({ error: 'Pipeline is still running — please wait' }, { status: 503 });
     }
     if (summary.status === 'error') {
