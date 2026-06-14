@@ -6,7 +6,7 @@ import { scaleIn, fadeUp } from '@/motion/variants';
 import type { UploadState } from '@/types/pipeline';
 import styles from './UploadZone.module.css';
 
-const REQUIRED_HEADERS = ['platform', 'rating', 'title', 'text', 'date'];
+const REQUIRED_HEADERS = ['platform', 'rating', 'text', 'date'];
 
 async function estimateRows(file: File): Promise<number> {
   const sample = await file.slice(0, 8192).text();

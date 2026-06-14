@@ -1,11 +1,29 @@
 from __future__ import annotations
 
-from datetime import datetime
+import re
+from datetime import datetime, timezone
 from typing import Optional
 
 
 REQUIRED_COLUMNS = {"platform", "rating", "text", "date"}
-ALLOWED_PLATFORMS = {"app store": "App Store", "google play": "Google Play"}
+ALLOWED_PLATFORMS = {
+    "app store": "App Store",
+    "appstore": "App Store",
+    "apple": "App Store",
+    "apple app store": "App Store",
+    "apple store": "App Store",
+    "ios": "App Store",
+    "ios app store": "App Store",
+    "iphone": "App Store",
+    "ipad": "App Store",
+    "google play": "Google Play",
+    "google play store": "Google Play",
+    "googleplay": "Google Play",
+    "googleplaystore": "Google Play",
+    "play store": "Google Play",
+    "playstore": "Google Play",
+    "android": "Google Play",
+}
 
 
 class MissingColumnError(Exception):
@@ -25,7 +43,8 @@ def validate_required_columns(df) -> None:
 def normalise_platform(val) -> Optional[str]:
     if val is None:
         return None
-    normalised = str(val).strip().lower()
+    normalised = re.sub(r"[_-]+", " ", str(val).strip().lower())
+    normalised = re.sub(r"\s+", " ", normalised)
     return ALLOWED_PLATFORMS.get(normalised, None)
 
 
@@ -35,7 +54,16 @@ def parse_date(val) -> Optional[datetime]:
     s = str(val).strip()
     if not s:
         return None
-    for fmt in ("%Y-%m-%d", "%d/%m/%Y"):
+    # App-store exports often include an ISO timestamp rather than a bare date.
+    try:
+        parsed = datetime.fromisoformat(s.replace("Z", "+00:00"))
+        if parsed.tzinfo is not None:
+            parsed = parsed.astimezone(timezone.utc).replace(tzinfo=None)
+        return parsed
+    except ValueError:
+        pass
+
+    for fmt in ("%d/%m/%Y", "%m/%d/%Y", "%Y/%m/%d"):
         try:
             return datetime.strptime(s, fmt)
         except ValueError:

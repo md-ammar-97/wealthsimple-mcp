@@ -20,7 +20,7 @@ const STEP_LABELS = ['Ingest', 'Redact', 'Classify', 'Rank', 'Quotes', 'Actions'
 const STEP_ICONS  = ['upload_file', 'policy', 'category', 'leaderboard', 'format_quote', 'lightbulb', 'article', 'email'];
 
 /* ─── CSV validation ────────────────────────────── */
-const REQUIRED_HEADERS = ['platform', 'rating', 'title', 'text', 'date'];
+const REQUIRED_HEADERS = ['platform', 'rating', 'text', 'date'];
 
 async function validateCsv(file: File): Promise<string | null> {
   if (!file.name.endsWith('.csv')) return 'File must be a .csv';

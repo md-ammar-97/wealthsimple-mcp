@@ -108,13 +108,65 @@ def test_ec05_mixed_date_formats(tmp_path):
         "platform,rating,title,text,date\n"
         f"App Store,3,Good,This app works great for managing investments.,2026-05-15\n"
         f"App Store,4,Great,I really enjoy using this application daily.,15/05/2026\n"
+        f"App Store,5,Useful,The portfolio view is useful and easy to read.,05/15/2026\n"
+        f"App Store,5,Fast,The application loads quickly every morning.,2026-05-15T08:30:00Z\n"
         f"App Store,2,Bad,The app crashes constantly and I cannot use it.,March 15 2026\n",
         encoding="utf-8",
     )
     config = make_config(review_window_weeks=52)
     reviews, meta = load_reviews(str(csv_path), config)
-    assert len(reviews) == 2
-    assert meta["rows_dropped_validation"] >= 1
+    assert len(reviews) == 4
+    assert meta["validation_drop_reasons"] == {"unparseable_date": 1}
+
+
+def test_platform_aliases_are_normalised(tmp_path):
+    csv_path = tmp_path / "platform_aliases.csv"
+    rows = [
+        f"iOS App Store,5,Great,The app makes investing straightforward and clear.,{recent_date(1)}",
+        f"Apple App Store,4,Useful,The account overview is useful every morning.,{recent_date(2)}",
+        f"Android,3,Fine,The Android application generally works well.,{recent_date(3)}",
+        f"Google_Play,2,Slow,The application can be slow during market open.,{recent_date(4)}",
+    ]
+    csv_path.write_text(
+        "platform,rating,title,text,date\n" + "\n".join(rows) + "\n",
+        encoding="utf-8",
+    )
+
+    reviews, meta = load_reviews(str(csv_path), make_config(min_reviews=1))
+
+    assert [review["platform"] for review in reviews] == [
+        "App Store",
+        "App Store",
+        "Google Play",
+        "Google Play",
+    ]
+    assert meta["rows_dropped_validation"] == 0
+
+
+def test_zero_valid_rows_reports_rejection_reasons(tmp_path):
+    csv_path = tmp_path / "invalid.csv"
+    csv_path.write_text(
+        "platform,rating,text,date\n"
+        "Unknown Store,5,This review has enough text.,2026-05-15\n"
+        "App Store,9,This rating is invalid.,2026-05-15\n"
+        "Google Play,4,This date cannot be parsed.,not-a-date\n",
+        encoding="utf-8",
+    )
+
+    reviews, meta = load_reviews(
+        str(csv_path),
+        make_config(review_window_weeks=52),
+    )
+
+    assert reviews == []
+    assert meta["validation_drop_reasons"] == {
+        "invalid_platform": 1,
+        "invalid_rating": 1,
+        "unparseable_date": 1,
+    }
+    assert "invalid_platform=1" in meta["validation_error"]
+    assert "invalid_rating=1" in meta["validation_error"]
+    assert "unparseable_date=1" in meta["validation_error"]
 
 
 # ---------------------------------------------------------------------------

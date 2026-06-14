@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import sys
+from collections import Counter
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Optional
@@ -66,34 +67,41 @@ def load_reviews(csv_path: str, config: Any, run_id: str = "dry-run") -> tuple[l
 
     validated: list[dict] = []
     dropped_indices: list[int] = []
+    drop_reasons: Counter[str] = Counter()
+    rows_outside_window = 0
 
     for idx, row in df.iterrows():
         platform = normalise_platform(row.get("platform"))
         if platform is None:
             dropped_indices.append(idx)
+            drop_reasons["invalid_platform"] += 1
             log(run_id, "ingest", "row_dropped", row_index=idx, reason="invalid_platform")
             continue
 
         rating = validate_rating(row.get("rating"))
         if rating is None:
             dropped_indices.append(idx)
+            drop_reasons["invalid_rating"] += 1
             log(run_id, "ingest", "row_dropped", row_index=idx, reason="invalid_rating")
             continue
 
         text = validate_text(row.get("text"))
         if text is None:
             dropped_indices.append(idx)
+            drop_reasons["blank_or_short_text"] += 1
             log(run_id, "ingest", "row_dropped", row_index=idx, reason="blank_or_short_text")
             continue
 
         date = parse_date(row.get("date"))
         if date is None:
             dropped_indices.append(idx)
+            drop_reasons["unparseable_date"] += 1
             log(run_id, "ingest", "row_dropped", row_index=idx, reason="unparseable_date")
             continue
 
         # Date window filter
         if date < cutoff:
+            rows_outside_window += 1
             continue
 
         title_val = row.get("title")
@@ -166,6 +174,26 @@ def load_reviews(csv_path: str, config: Any, run_id: str = "dry-run") -> tuple[l
         "reviews_ingested": len(deduped) + dup_count,
         "reviews_after_dedup": len(deduped),
         "rows_dropped_validation": len(dropped_indices),
+        "validation_drop_reasons": dict(sorted(drop_reasons.items())),
+        "rows_outside_window": rows_outside_window,
     }
+
+    if not deduped:
+        details: list[str] = []
+        if drop_reasons:
+            reason_counts = ", ".join(
+                f"{reason}={count}" for reason, count in sorted(drop_reasons.items())
+            )
+            details.append(f"validation rejections: {reason_counts}")
+        if rows_outside_window:
+            details.append(
+                f"outside the configured {window_weeks}-week date window={rows_outside_window}"
+            )
+        detail_text = "; ".join(details) or "the CSV contained no usable rows"
+        metadata["validation_error"] = (
+            f"No valid reviews remained after ingestion ({detail_text}). "
+            "Accepted platforms include App Store/iOS/Apple and Google Play/Android; "
+            "accepted dates include YYYY-MM-DD, ISO timestamps, DD/MM/YYYY, and MM/DD/YYYY."
+        )
 
     return deduped, metadata

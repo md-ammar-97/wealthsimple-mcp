@@ -113,8 +113,18 @@ def run_pipeline(
             "reviews_ingested": ingest_meta.get("reviews_ingested", len(reviews)),
             "reviews_after_dedup": ingest_meta.get("reviews_after_dedup", len(reviews)),
             "rows_dropped_validation": ingest_meta.get("rows_dropped_validation", 0),
+            "validation_drop_reasons": ingest_meta.get("validation_drop_reasons", {}),
+            "rows_outside_window": ingest_meta.get("rows_outside_window", 0),
             "low_data_warning": ingest_meta.get("low_data_warning", False),
         })
+
+        if not reviews:
+            validation_error = ingest_meta.get(
+                "validation_error",
+                "No valid reviews remained after ingestion.",
+            )
+            log(run_id, "pipeline", "ingest_validation_failed", error=validation_error)
+            raise ValueError(validation_error)
 
         # Step 2 — Redact + write clean CSV
         log(run_id, "pipeline", "step_start", step=2, name="redact")

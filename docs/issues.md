@@ -138,7 +138,7 @@ Added diagnostics:
 
 ## ISSUE-007 — "Pipeline exited 0 but summary status is 'running' after 10s"
 
-**Status:** ROOT CAUSE FIXED LOCALLY (2026-06-14), awaiting Render deployment
+**Status:** FIXED AND DEPLOYED (2026-06-14)
 **Symptom:** The diagnostic message added in ISSUE-006 surfaces in the browser: "Pipeline exited 0 but summary status is 'running' after 10s". The live `/api/debug` endpoint confirms the Node placeholder remains unchanged after the child process exits.
 
 ### Root Cause
@@ -169,5 +169,36 @@ Running the module therefore imported the CLI definitions, performed no pipeline
 
 | Item | Where to look |
 |---|---|
-| Confirm ISSUE-007 fix after deployment | Render logs should show structured Python `step_start` events and `/api/debug` should show a non-`running` summary |
 | Whether GROQ_API_KEY is set and Groq calls succeed | Render logs: Python stderr during step 3 (classify) |
+
+---
+
+## ISSUE-008 - Empty ranked themes after CSV upload
+
+**Status:** FIXED (2026-06-14)
+**Symptom:** The upload page reported: `ranked_themes is empty - theme classification must have failed upstream.`
+
+### Root Cause
+The live run summary showed that ingestion rejected all 49 uploaded rows:
+
+- `reviews_ingested: 0`
+- `reviews_after_dedup: 0`
+- `rows_dropped_validation: 49`
+
+Theme classification therefore received no reviews. The previous pipeline behavior continued through
+redaction, classification, and ranking before raising a misleading downstream error.
+
+The importer also accepted only the exact platform names `App Store` and `Google Play`, and only bare
+`YYYY-MM-DD` or `DD/MM/YYYY` dates. Common export values such as `iOS`, `Android`, `Play Store`, ISO
+timestamps, and US-style slash dates were rejected.
+
+### Fix Applied
+- Accept common App Store and Google Play platform aliases
+- Accept ISO timestamps, `MM/DD/YYYY`, and `YYYY/MM/DD` dates
+- Record validation rejection counts and date-window exclusions in the run summary
+- Stop after ingestion when zero valid reviews remain and report the exact rejection breakdown
+- Make the optional `title` column optional in browser-side CSV validation
+
+**Files:** `pulse/ingestion/validators.py`, `pulse/ingestion/ingest.py`,
+`pulse/orchestrator.py`, `frontend/src/app/upload/page.tsx`,
+`frontend/src/components/UploadZone/UploadZone.tsx`, `tests/unit/test_ingest.py`
