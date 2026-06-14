@@ -5,21 +5,33 @@ const STEP_MAP: Record<string, number> = {
   quote_select: 5, action_gen: 6, pulse_note: 7, email_draft: 8,
 };
 
-function stageToStepUpdate(run: { stage: string; event: string; detail?: string; error?: string; completed: boolean }) {
+function stageToStepUpdate(run: {
+  stage: string; event: string;
+  name?: string; step?: number;
+  detail?: string; error?: string; completed: boolean;
+}) {
   if (run.completed) return JSON.stringify({ completed: true });
 
-  const stepId = STEP_MAP[run.stage];
-  if (!stepId) return null;
-
+  let stepId: number | undefined;
   let state: 'active' | 'done' | 'error' = 'active';
-  if (run.event === 'complete') state = 'done';
-  if (run.event === 'error') state = 'error';
 
-  return JSON.stringify({
-    step: stepId,
-    state,
-    detail: run.error ?? run.detail,
-  });
+  if (run.stage === 'pipeline') {
+    // Orchestrator meta-events:
+    //   step_start → {"stage":"pipeline","event":"step_start","step":N,"name":"ingest"}
+    //   step_done  → {"stage":"pipeline","event":"step_done","step":N,...}
+    stepId = typeof run.step === 'number' ? run.step : (run.name ? STEP_MAP[run.name] : undefined);
+    if (run.event === 'step_done') state = 'done';
+    if (run.event === 'step_start') state = 'active';
+    if (run.event === 'run_error') state = 'error';
+  } else {
+    // Module-level events: e.g. classify_complete, quote_select_complete, ingest_complete
+    stepId = STEP_MAP[run.stage];
+    if (run.event.includes('complete') || run.event.includes('done')) state = 'done';
+    if (run.event.includes('error')) state = 'error';
+  }
+
+  if (!stepId) return null;
+  return JSON.stringify({ step: stepId, state, detail: run.error ?? run.detail });
 }
 
 export async function GET(req: NextRequest) {
@@ -29,7 +41,7 @@ export async function GET(req: NextRequest) {
     start(controller) {
       let lastEvent = '';
       let ticks = 0;
-      const MAX_TICKS = 600; // 5min timeout at 500ms intervals
+      const MAX_TICKS = 1440; // 12min timeout at 500ms intervals
 
       const interval = setInterval(() => {
         ticks++;
