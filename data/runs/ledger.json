@@ -49,5 +49,20 @@
       "message_id": "19ecbb46e469c58b",
       "thread_id": "19ecbb46e469c58b"
     }
+  },
+  {
+    "run_id": "run-20260622T134305Z-707c36",
+    "input_hash": "sha256:e9a8a065b29b",
+    "period_key": "wealthsimple-2026-W26",
+    "delivery_key": "wealthsimple-2026-W26-email-send",
+    "status": "success",
+    "started_at": "2026-06-22T13:43:05.233776+00:00",
+    "completed_at": "2026-06-22T13:45:05.152308+00:00",
+    "reviews_ingested": 139,
+    "themes_in_note": 3,
+    "note_word_count": 175,
+    "delivery": {
+      "mode": "mcp"
+    }
   }
 ]
