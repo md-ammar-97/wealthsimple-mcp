@@ -169,5 +169,20 @@
     "delivery": {
       "mode": "mcp"
     }
+  },
+  {
+    "run_id": "run-20260914T145818Z-07acc9",
+    "input_hash": "sha256:254bcd05194a",
+    "period_key": "wealthsimple-2026-W38",
+    "delivery_key": "wealthsimple-2026-W38-email-send",
+    "status": "success",
+    "started_at": "2026-09-14T14:58:18.005858+00:00",
+    "completed_at": "2026-09-14T14:59:08.897308+00:00",
+    "reviews_ingested": 104,
+    "themes_in_note": 3,
+    "note_word_count": 227,
+    "delivery": {
+      "mode": "mcp"
+    }
   }
 ]
